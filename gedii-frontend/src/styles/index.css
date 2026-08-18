@@ -75,3 +75,33 @@ button {
 a {
   color: inherit;
 }
+
+/* --- Sidebar --- */
+.sidebar-link:hover {
+  background: var(--color-primary-soft);
+}
+
+.sidebar-link:active {
+  transform: scale(0.98);
+}
+
+/* --- Transitions de page --- */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition {
+  animation: fadeSlideIn 0.25s ease;
+}
+
+/* --- Navbar --- */
+.navbar-scrolled {
+  box-shadow: 0 2px 12px var(--color-shadow);
+}
