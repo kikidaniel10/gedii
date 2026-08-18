@@ -1,0 +1,77 @@
+@import '@fontsource/fraunces/600.css';
+@import '@fontsource/fraunces/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+
+:root {
+  --color-primary: #0B6E4F;
+  --color-primary-dark: #084F39;
+  --color-primary-soft: #dff4ea;
+  --color-accent-red: #CE1126;
+  --color-accent-gold: #FCD116;
+  --color-bg: #f4f8f5;
+  --color-bg-strong: #eaf3ee;
+  --color-surface: #ffffff;
+  --color-surface-alt: #eef7f2;
+  --color-text: #15231d;
+  --color-text-soft: #4d6159;
+  --color-border: #dfeae4;
+  --color-shadow: rgba(10, 20, 16, 0.12);
+
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --radius: 8px;
+  --shadow-card: 0 1px 3px rgba(27, 36, 32, 0.08), 0 1px 2px rgba(27, 36, 32, 0.06);
+}
+
+body[data-theme='dark'] {
+  --color-primary: #6dd1a2;
+  --color-primary-dark: #4fb983;
+  --color-primary-soft: rgba(109, 209, 162, 0.14);
+  --color-accent-red: #ff5f6d;
+  --color-accent-gold: #f6d15b;
+  --color-bg: #071813;
+  --color-bg-strong: #0d221b;
+  --color-surface: #0f1f1a;
+  --color-surface-alt: #122922;
+  --color-text: #edf8f2;
+  --color-text-soft: #b8cabf;
+  --color-border: rgba(196, 219, 206, 0.15);
+  --color-shadow: rgba(1, 10, 7, 0.42);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-bg);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
