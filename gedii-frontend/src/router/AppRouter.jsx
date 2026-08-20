@@ -15,7 +15,7 @@ import GestionServicesPage from '../pages/responsable/GestionServicesPage.jsx';
 import StatistiquesPage from '../pages/responsable/StatistiquesPage.jsx';
 
 import InterventionsAssigneesPage from '../pages/technicien/InterventionsAssigneesPage.jsx';
-
+import AssignerTechnicienPage from '../pages/responsable/AssignerTechnicienPage.jsx';
 export default function AppRouter() {
   return (
     <Routes>
@@ -71,6 +71,14 @@ export default function AppRouter() {
           </ProtectedRoute>
         }
       />
+      <Route
+  path="/responsable/assigner"
+  element={
+    <ProtectedRoute allowedRoles={[ROLES.RESPONSABLE]}>
+      <AppLayout><AssignerTechnicienPage /></AppLayout>
+    </ProtectedRoute>
+  }
+/>
 
       <Route
         path="/technicien/interventions"
