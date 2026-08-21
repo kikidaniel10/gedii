@@ -23,3 +23,13 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Backend Java / Maven / IntelliJ
+gedii-backend/target/
+gedii-backend/.mvn/
+gedii-backend/mvnw
+gedii-backend/mvnw.cmd
+.idea/
+*.iml
+*.class
+application-secrets.yml
