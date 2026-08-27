@@ -12,4 +12,6 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     boolean existsByEmail(String email);
 
     boolean existsByMatricule(String matricule);
+
+    boolean existsByRole(com.mincom.gediibackend.entity.enums.Role role);
 }
