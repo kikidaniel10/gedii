@@ -12,4 +12,7 @@ public interface InterventionRepository extends JpaRepository<Intervention, Long
     List<Intervention> findByTechnicienAndStatut(TechnicienInfo technicien, StatutIntervention statut);
 
     List<Intervention> findByTechnicien(TechnicienInfo technicien);
+
+    long countByStatut(com.mincom.gediibackend.entity.enums.StatutIntervention statut);
+    List<Intervention> findByStatut(com.mincom.gediibackend.entity.enums.StatutIntervention statut);
 }

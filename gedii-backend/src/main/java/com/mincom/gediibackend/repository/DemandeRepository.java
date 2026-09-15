@@ -12,4 +12,6 @@ public interface DemandeRepository extends JpaRepository<Demande, Long> {
     List<Demande> findByStatut(StatutDemande statut);
 
     List<Demande> findByAgent(Utilisateur agent);
+
+    long countByStatut(com.mincom.gediibackend.entity.enums.StatutDemande statut);
 }
