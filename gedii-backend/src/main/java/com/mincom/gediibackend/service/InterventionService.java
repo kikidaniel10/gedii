@@ -22,13 +22,16 @@ public class InterventionService {
     private final InterventionRepository interventionRepository;
     private final DemandeRepository demandeRepository;
     private final EntityManager entityManager;
+    private final NotificationService notificationService;
 
     public InterventionService(InterventionRepository interventionRepository,
                                DemandeRepository demandeRepository,
-                               EntityManager entityManager) {
+                               EntityManager entityManager,
+                               NotificationService notificationService) {
         this.interventionRepository = interventionRepository;
         this.demandeRepository = demandeRepository;
         this.entityManager = entityManager;
+        this.notificationService = notificationService;
     }
 
     public InterventionResponseDTO assigner(AssignationRequestDTO dto) {
@@ -52,7 +55,15 @@ public class InterventionService {
         demande.setStatut(StatutDemande.EN_COURS);
         demandeRepository.save(demande);
 
-        return new InterventionResponseDTO(interventionRepository.save(intervention));
+        Intervention saved = interventionRepository.save(intervention);
+
+        notificationService.envoyer(
+                technicien.getEmail(),
+                "Nouvelle intervention assignée",
+                "Une nouvelle intervention vous a été assignée pour la demande : '" + demande.getTitre() + "'"
+        );
+
+        return new InterventionResponseDTO(saved);
     }
 
     public List<InterventionResponseDTO> getMesInterventions(TechnicienInfo technicien) {
@@ -81,7 +92,11 @@ public class InterventionService {
         demande.setStatut(StatutDemande.RESOLUE);
         demandeRepository.save(demande);
 
-        // TODO: notifier l'agent une fois NotificationService cree
+        notificationService.envoyer(
+                demande.getAgent().getEmail(),
+                "Votre demande a été résolue",
+                "Votre demande '" + demande.getTitre() + "' a été résolue. Compte-rendu : " + dto.getCompteRendu()
+        );
 
         return new InterventionResponseDTO(intervention);
     }

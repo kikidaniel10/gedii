@@ -15,9 +15,11 @@ import java.util.List;
 public class DemandeService {
 
     private final DemandeRepository demandeRepository;
+    private final NotificationService notificationService;
 
-    public DemandeService(DemandeRepository demandeRepository) {
+    public DemandeService(DemandeRepository demandeRepository, NotificationService notificationService) {
         this.demandeRepository = demandeRepository;
+        this.notificationService = notificationService;
     }
 
     public DemandeResponseDTO creer(DemandeRequestDTO dto, Utilisateur agent) {
@@ -57,6 +59,12 @@ public class DemandeService {
         demande.setStatut(StatutDemande.VALIDEE);
         demande.setDateValidation(LocalDateTime.now());
         demandeRepository.save(demande);
+
+        notificationService.envoyer(
+                demande.getAgent().getEmail(),
+                "Votre demande a été validée",
+                "Votre demande '" + demande.getTitre() + "' a été validée et sera bientôt assignée à un technicien."
+        );
 
         return new DemandeResponseDTO(demande);
     }

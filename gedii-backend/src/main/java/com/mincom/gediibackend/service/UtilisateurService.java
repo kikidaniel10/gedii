@@ -10,17 +10,20 @@ import jakarta.persistence.EntityManager;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class UtilisateurService {
 
     private final UtilisateurRepository utilisateurRepository;
     private final EntityManager entityManager;
+    private final NotificationService notificationService;
 
-    public UtilisateurService(UtilisateurRepository utilisateurRepository, EntityManager entityManager) {
+    public UtilisateurService(UtilisateurRepository utilisateurRepository,
+                              EntityManager entityManager,
+                              NotificationService notificationService) {
         this.utilisateurRepository = utilisateurRepository;
         this.entityManager = entityManager;
+        this.notificationService = notificationService;
     }
 
     public List<UtilisateurResponseDTO> getEnAttente() {
@@ -29,6 +32,7 @@ public class UtilisateurService {
                 .map(UtilisateurResponseDTO::new)
                 .toList();
     }
+
     public List<UtilisateurResponseDTO> getActifs() {
         return utilisateurRepository.findByStatutCompte(StatutCompte.ACTIF)
                 .stream()
@@ -47,7 +51,11 @@ public class UtilisateurService {
         utilisateur.setStatutCompte(StatutCompte.ACTIF);
         utilisateurRepository.save(utilisateur);
 
-        // TODO: notifier l'utilisateur par email une fois NotificationService cree
+        notificationService.envoyer(
+                utilisateur.getEmail(),
+                "Votre compte GEDII a été activé",
+                "Bonjour " + utilisateur.getNom() + ", votre compte a été validé par le responsable. Vous pouvez maintenant vous connecter."
+        );
 
         return new UtilisateurResponseDTO(utilisateur);
     }
