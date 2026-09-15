@@ -33,25 +33,40 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
+        System.out.println("###### REQUETE: " + request.getMethod() + " " + request.getRequestURI());
+
         String authHeader = request.getHeader("Authorization");
+        System.out.println("###### Authorization header recu: [" + authHeader + "]");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("###### PAS DE BEARER VALIDE - on continue sans authentification");
             filterChain.doFilter(request, response);
             return;
         }
 
         String token = authHeader.substring(7);
+        System.out.println("###### Token extrait (20 premiers car.): " + token.substring(0, Math.min(20, token.length())));
 
-        if (jwtUtil.isTokenValid(token)) {
+        boolean valide = jwtUtil.isTokenValid(token);
+        System.out.println("###### Token valide selon jwtUtil.isTokenValid(): " + valide);
+
+        if (valide) {
             String email = jwtUtil.extractEmail(token);
+            System.out.println("###### Email extrait du token: " + email);
+
             Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByEmail(email);
+            System.out.println("###### Utilisateur trouve en base: " + utilisateurOpt.isPresent());
 
             if (utilisateurOpt.isPresent() && SecurityContextHolder.getContext().getAuthentication() == null) {
                 Utilisateur utilisateur = utilisateurOpt.get();
+                System.out.println("###### Role de l'utilisateur: " + utilisateur.getRole());
+
                 var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + utilisateur.getRole().name()));
+                System.out.println("###### Authority assignee: " + authorities);
 
                 var authToken = new UsernamePasswordAuthenticationToken(utilisateur, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                System.out.println("###### Authentication mise dans le SecurityContext");
             }
         }
 

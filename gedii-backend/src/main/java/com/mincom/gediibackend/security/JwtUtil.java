@@ -43,6 +43,7 @@ public class JwtUtil {
             extractAllClaims(token);
             return true;
         } catch (Exception e) {
+            System.out.println("###### ERREUR VALIDATION TOKEN: " + e.getClass().getName() + " - " + e.getMessage());
             return false;
         }
     }

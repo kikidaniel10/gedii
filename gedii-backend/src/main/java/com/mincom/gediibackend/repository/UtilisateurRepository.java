@@ -14,4 +14,8 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     boolean existsByMatricule(String matricule);
 
     boolean existsByRole(com.mincom.gediibackend.entity.enums.Role role);
+
+    java.util.List<Utilisateur> findByStatutCompte(com.mincom.gediibackend.entity.enums.StatutCompte statut);
+
+    java.util.List<Utilisateur> findByRole(com.mincom.gediibackend.entity.enums.Role role);
 }

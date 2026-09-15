@@ -27,6 +27,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/services").permitAll()
+                        .requestMatchers("/api/utilisateurs/**").hasRole("RESPONSABLE")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/demandes/*/valider", "/api/demandes/*/rejeter").hasRole("RESPONSABLE")
+                        .requestMatchers("/api/demandes/en-attente", "/api/demandes/validees").hasRole("RESPONSABLE")
+                        .requestMatchers("/api/interventions/assigner").hasRole("RESPONSABLE")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
