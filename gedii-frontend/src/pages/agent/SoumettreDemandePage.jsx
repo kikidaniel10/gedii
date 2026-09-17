@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { demandeService } from '../../services/demandeService';
 
 export default function SoumettreDemandePage() {
   const [form, setForm] = useState({
@@ -28,9 +29,11 @@ export default function SoumettreDemandePage() {
       setErrors(validationErrors);
       return;
     }
-    // Branchement sur demandeService.creerDemande() a l'etape backend
-    console.log('Nouvelle demande:', form);
-    setSubmitted(true);
+    demandeService.creer(form)
+      .then(() => setSubmitted(true))
+      .catch((err) => {
+        setErrors({ general: err.response?.data?.erreur || 'Erreur lors de la soumission' });
+      });
   };
 
   if (submitted) {
@@ -62,6 +65,10 @@ export default function SoumettreDemandePage() {
       </p>
 
       <form onSubmit={handleSubmit} style={styles.form}>
+        {errors.general && (
+          <span style={{ ...styles.error, display: 'block' }}>{errors.general}</span>
+        )}
+
         <label style={styles.label}>
           Titre
           <input

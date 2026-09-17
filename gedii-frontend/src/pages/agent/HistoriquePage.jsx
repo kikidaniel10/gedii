@@ -1,43 +1,5 @@
-import { useState } from 'react';
-
-// Donnees fictives temporaires - seront remplacees par un appel a demandeService.getMesDemandes()
-const DEMANDES_TEMP = [
-  {
-    id: 1,
-    titre: 'Imprimante hors service au 2e étage',
-    urgence: 'URGENTE',
-    statut: 'EN_COURS',
-    dateCreation: '2026-08-14',
-  },
-  {
-    id: 2,
-    titre: 'Écran qui clignote',
-    urgence: 'NORMALE',
-    statut: 'VALIDEE',
-    dateCreation: '2026-08-12',
-  },
-  {
-    id: 3,
-    titre: 'Impossible de se connecter au réseau',
-    urgence: 'URGENTE',
-    statut: 'RESOLUE',
-    dateCreation: '2026-08-05',
-  },
-  {
-    id: 4,
-    titre: 'Demande de nouveau clavier',
-    urgence: 'FAIBLE',
-    statut: 'EN_ATTENTE',
-    dateCreation: '2026-08-19',
-  },
-  {
-    id: 5,
-    titre: 'Logiciel comptable qui plante',
-    urgence: 'NORMALE',
-    statut: 'REJETEE',
-    dateCreation: '2026-08-01',
-  },
-];
+import { useState, useEffect } from 'react';
+import { demandeService } from '../../services/demandeService';
 
 const STATUT_CONFIG = {
   EN_ATTENTE: { label: 'En attente', color: 'var(--color-accent-gold)', text: 'var(--color-text)' },
@@ -55,11 +17,20 @@ const URGENCE_LABEL = {
 
 export default function HistoriquePage() {
   const [filtre, setFiltre] = useState('TOUS');
+  const [demandes, setDemandes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    demandeService.getMesDemandes()
+      .then(setDemandes)
+      .catch(() => setDemandes([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const demandesFiltrees =
     filtre === 'TOUS'
-      ? DEMANDES_TEMP
-      : DEMANDES_TEMP.filter((d) => d.statut === filtre);
+      ? demandes
+      : demandes.filter((d) => d.statut === filtre);
 
   return (
     <div>
@@ -83,7 +54,9 @@ export default function HistoriquePage() {
         ))}
       </div>
 
-      {demandesFiltrees.length === 0 ? (
+      {loading ? (
+        <p style={styles.empty}>Chargement...</p>
+      ) : demandesFiltrees.length === 0 ? (
         <p style={styles.empty}>Aucune demande pour ce filtre.</p>
       ) : (
         <div style={styles.list}>
