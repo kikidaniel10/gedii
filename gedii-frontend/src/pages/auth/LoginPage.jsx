@@ -3,6 +3,9 @@ import coatOfArms from '../../assets/coat-of-arms.png';
 import mincomBuilding from '../../assets/mincom-building.png';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import { useTheme } from '../../context/ThemeContext.jsx';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '../../services/authService';
+import { useAuth } from '../../hooks/useAuth';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -45,6 +48,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const strings = translations[language] || translations.fr;
 
@@ -67,12 +73,25 @@ export default function LoginPage() {
 
     const nextError = validateEmail(email);
     setEmailError(nextError);
+    setLoginError('');
 
     if (nextError) {
       return;
     }
 
-    // Branchement sur AuthService a l'etape suivante
+    authService.login(email, password)
+      .then((data) => {
+        login({ nom: data.nom, matricule: data.matricule, role: data.role }, data.token);
+        const routes = {
+          AGENT: '/agent/soumettre',
+          RESPONSABLE: '/responsable/demandes',
+          TECHNICIEN: '/technicien/interventions',
+        };
+        navigate(routes[data.role] || '/login');
+      })
+      .catch((err) => {
+        setLoginError(err.response?.data?.erreur || 'Identifiants incorrects');
+      });
   };
 
   const handleEmailChange = (e) => {
@@ -499,6 +518,12 @@ export default function LoginPage() {
                     required
                   />
                 </div>
+
+                {loginError && (
+                  <span className="error-message" style={{ minHeight: 'auto', marginTop: '-8px' }}>
+                    {loginError}
+                  </span>
+                )}
 
                 <button type="submit" className="submit-button">
                   {strings.submit}

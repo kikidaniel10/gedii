@@ -1,13 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import coatOfArms from '../../assets/coat-of-arms.png';
 import mincomBuilding from '../../assets/mincom-building.png';
-
-// Liste temporaire en dur - sera remplacee par un appel a GET /api/services
-const SERVICES_TEMP = [
-  { id: 1, nom: 'Direction de la Communication' },
-  { id: 2, nom: 'Cellule Informatique' },
-  { id: 3, nom: 'Service du Personnel' },
-];
+import { authService } from '../../services/authService';
+import { serviceService } from '../../services/serviceService';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -20,6 +15,11 @@ export default function RegisterPage() {
   });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [services, setServices] = useState([]);
+
+  useEffect(() => {
+    serviceService.getAll().then(setServices).catch(() => setServices([]));
+  }, []);
 
   const handleChange = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
@@ -44,9 +44,21 @@ export default function RegisterPage() {
       setErrors(validationErrors);
       return;
     }
-    // Branchement sur AuthService.register() a l'etape backend
-    console.log('Inscription:', form);
-    setSubmitted(true);
+
+    const selectedService = services.find((s) => String(s.id) === String(form.serviceId));
+
+    authService.register({
+      nom: form.nom,
+      matricule: form.matricule,
+      email: form.email,
+      password: form.password,
+      service: selectedService ? selectedService.nom : '',
+      cleAcces: form.cleAcces,
+    })
+      .then(() => setSubmitted(true))
+      .catch((err) => {
+        setErrors({ general: err.response?.data?.erreur || 'Erreur lors de l\'inscription' });
+      });
   };
 
   if (submitted) {
@@ -75,6 +87,12 @@ export default function RegisterPage() {
         <p style={styles.subtitle}>Ministère de la Communication</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
+          {errors.general && (
+            <span style={{ ...styles.error, display: 'block', marginBottom: '4px' }}>
+              {errors.general}
+            </span>
+          )}
+
           <label style={styles.label}>
             Nom complet
             <input
@@ -128,7 +146,7 @@ export default function RegisterPage() {
               style={styles.input}
             >
               <option value="">Sélectionnez votre service</option>
-              {SERVICES_TEMP.map((s) => (
+              {services.map((s) => (
                 <option key={s.id} value={s.id}>{s.nom}</option>
               ))}
             </select>

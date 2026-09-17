@@ -1,27 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Copy, Check, Plus } from 'lucide-react';
-
-// Donnees fictives temporaires - seront remplacees par des appels a serviceService (GET/POST /api/services)
-const SERVICES_INIT = [
-  { id: 1, nom: 'Direction de la Communication', cleAcces: 'SRV-4F2A9C', dateCreation: '2026-07-10' },
-  { id: 2, nom: 'Cellule Informatique', cleAcces: 'SRV-88B1E2', dateCreation: '2026-07-10' },
-  { id: 3, nom: 'Service du Personnel', cleAcces: 'SRV-D34F01', dateCreation: '2026-08-01' },
-];
-
-function genererCle() {
-  const chars = '0123456789ABCDEF';
-  let code = 'MINCOM-';
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
-}
+import { serviceService } from '../../services/serviceService';
 
 export default function GestionServicesPage() {
-  const [services, setServices] = useState(SERVICES_INIT);
+  const [services, setServices] = useState([]);
   const [nomService, setNomService] = useState('');
   const [error, setError] = useState('');
   const [copiedId, setCopiedId] = useState(null);
+
+  useEffect(() => {
+    loadServices();
+  }, []);
+
+  const loadServices = () => {
+    serviceService.getAll().then(setServices).catch(() => setServices([]));
+  };
 
   const handleCreate = (e) => {
     e.preventDefault();
@@ -29,21 +22,13 @@ export default function GestionServicesPage() {
       setError('Le nom du service est requis');
       return;
     }
-    if (services.some((s) => s.nom.toLowerCase() === nomService.trim().toLowerCase())) {
-      setError('Ce service existe déjà');
-      return;
-    }
-
-    // Branchement sur serviceService.creerService(nom) a l'etape backend
-    const nouveauService = {
-      id: Date.now(),
-      nom: nomService.trim(),
-      cleAcces: genererCle(),
-      dateCreation: new Date().toISOString().slice(0, 10),
-    };
-    setServices([nouveauService, ...services]);
-    setNomService('');
-    setError('');
+    serviceService.create(nomService.trim())
+      .then(() => {
+        setNomService('');
+        setError('');
+        loadServices();
+      })
+      .catch((err) => setError(err.response?.data?.erreur || 'Erreur lors de la création'));
   };
 
   const handleCopy = (id, cle) => {
