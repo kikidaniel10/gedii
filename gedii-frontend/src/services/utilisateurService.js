@@ -25,4 +25,9 @@ export const utilisateurService = {
     const response = await api.put(`/utilisateurs/${id}/promouvoir-technicien`, { specialite });
     return response.data;
   },
+
+  getTechniciens: async () => {
+  const response = await api.get('/utilisateurs/actifs');
+  return response.data;
+  },
 };
