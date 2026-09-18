@@ -33,6 +33,19 @@ public class ServiceController {
         return ResponseEntity.ok(serviceRepository.save(service));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> delete(@PathVariable Long id) {
+        if (!serviceRepository.existsById(id)) {
+            throw new IllegalArgumentException("Service introuvable");
+        }
+        try {
+            serviceRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new IllegalStateException("Impossible de supprimer ce service : des utilisateurs y sont déjà rattachés");
+        }
+        return ResponseEntity.ok(Map.of("message", "Service supprimé"));
+    }
+
     private String genererCle() {
         SecureRandom random = new SecureRandom();
         StringBuilder sb = new StringBuilder("SRV-");
