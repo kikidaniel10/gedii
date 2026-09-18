@@ -1,55 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, X, Search } from 'lucide-react';
-
-// Donnees fictives temporaires - seront remplacees par des appels API
-const COMPTES_EN_ATTENTE_TEMP = [
-  {
-    id: 1,
-    nom: 'Sarah Ondoa',
-    matricule: 'MC-2201',
-    email: 'sarah.ondoa@mincom.cm',
-    service: 'Direction de la Communication',
-    dateCreation: '2026-08-18',
-  },
-  {
-    id: 2,
-    nom: 'Éric Talla',
-    matricule: 'MC-2202',
-    email: 'eric.talla@mincom.cm',
-    service: 'Cellule Informatique',
-    dateCreation: '2026-08-19',
-  },
-];
-
-const COMPTES_ACTIFS_TEMP = [
-  {
-    id: 10,
-    nom: 'Jean Mballa',
-    matricule: 'MC-1001',
-    email: 'jean.mballa@mincom.cm',
-    service: 'Direction de la Communication',
-    role: 'AGENT',
-    dateValidation: '2026-06-02',
-  },
-  {
-    id: 11,
-    nom: 'Paul Nkeng',
-    matricule: 'MC-1002',
-    email: 'paul.nkeng@mincom.cm',
-    service: 'Cellule Informatique',
-    role: 'TECHNICIEN',
-    dateValidation: '2026-05-14',
-  },
-  {
-    id: 12,
-    nom: 'Marie Fotso',
-    matricule: 'MC-1003',
-    email: 'marie.fotso@mincom.cm',
-    service: 'Service du Personnel',
-    role: 'AGENT',
-    dateValidation: '2026-07-20',
-  },
-];
+import { utilisateurService } from '../../services/utilisateurService';
 
 const ROLE_LABEL = {
   AGENT: 'Agent',
@@ -59,23 +10,51 @@ const ROLE_LABEL = {
 
 export default function GestionUtilisateursPage() {
   const [onglet, setOnglet] = useState('attente');
-  const [comptesEnAttente, setComptesEnAttente] = useState(COMPTES_EN_ATTENTE_TEMP);
-  const [comptesActifs] = useState(COMPTES_ACTIFS_TEMP);
+  const [comptesEnAttente, setComptesEnAttente] = useState([]);
+  const [comptesActifs, setComptesActifs] = useState([]);
   const [confirmAction, setConfirmAction] = useState(null);
   const [recherche, setRecherche] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = () => {
+    setLoading(true);
+    Promise.all([
+      utilisateurService.getEnAttente(),
+      utilisateurService.getActifs(),
+    ])
+      .then(([attente, actifs]) => {
+        setComptesEnAttente(attente);
+        setComptesActifs(actifs);
+      })
+      .catch(() => {
+        setComptesEnAttente([]);
+        setComptesActifs([]);
+      })
+      .finally(() => setLoading(false));
+  };
 
   const handleAction = (id, type) => {
-    // Branchement sur utilisateurService.validerCompte() / rejeterCompte() a l'etape backend
-    console.log(`Compte ${id} : ${type}`);
-    setComptesEnAttente(comptesEnAttente.filter((c) => c.id !== id));
-    setConfirmAction(null);
+    const action = type === 'valider'
+      ? utilisateurService.valider(id)
+      : utilisateurService.rejeter(id);
+
+    action
+      .then(() => {
+        setConfirmAction(null);
+        loadData();
+      })
+      .catch(() => setConfirmAction(null));
   };
 
   const comptesActifsFiltres = comptesActifs.filter(
     (c) =>
       c.nom.toLowerCase().includes(recherche.toLowerCase()) ||
       c.matricule.toLowerCase().includes(recherche.toLowerCase()) ||
-      c.service.toLowerCase().includes(recherche.toLowerCase())
+      c.serviceNom.toLowerCase().includes(recherche.toLowerCase())
   );
 
   return (
@@ -103,124 +82,130 @@ export default function GestionUtilisateursPage() {
         </button>
       </div>
 
-      {onglet === 'attente' && (
+      {loading ? (
+        <p style={styles.empty}>Chargement...</p>
+      ) : (
         <>
-          {comptesEnAttente.length === 0 ? (
-            <p style={styles.empty}>Aucun compte en attente pour le moment.</p>
-          ) : (
-            <div style={styles.list}>
-              {comptesEnAttente.map((c) => {
-                const isConfirming = confirmAction?.id === c.id;
-                return (
-                  <div key={c.id} style={styles.card}>
-                    <div style={styles.cardMain}>
-                      <div style={styles.avatar}>
-                        {c.nom.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 style={styles.cardTitle}>{c.nom}</h3>
-                        <p style={styles.cardMeta}>{c.matricule} · {c.email}</p>
-                        <p style={styles.cardMeta}>
-                          {c.service} · Inscrit le {new Date(c.dateCreation).toLocaleDateString('fr-FR')}
-                        </p>
-                      </div>
-                    </div>
+          {onglet === 'attente' && (
+            <>
+              {comptesEnAttente.length === 0 ? (
+                <p style={styles.empty}>Aucun compte en attente pour le moment.</p>
+              ) : (
+                <div style={styles.list}>
+                  {comptesEnAttente.map((c) => {
+                    const isConfirming = confirmAction?.id === c.id;
+                    return (
+                      <div key={c.id} style={styles.card}>
+                        <div style={styles.cardMain}>
+                          <div style={styles.avatar}>
+                            {c.nom.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 style={styles.cardTitle}>{c.nom}</h3>
+                            <p style={styles.cardMeta}>{c.matricule} · {c.email}</p>
+                            <p style={styles.cardMeta}>
+                              {c.serviceNom} · Inscrit le {new Date(c.dateCreation).toLocaleDateString('fr-FR')}
+                            </p>
+                          </div>
+                        </div>
 
-                    {isConfirming ? (
-                      <div style={styles.confirmBox}>
-                        <span style={styles.confirmText}>
-                          Confirmer : {confirmAction.type === 'valider' ? 'activer' : 'rejeter'} ce compte ?
-                        </span>
-                        <div style={styles.confirmActions}>
-                          <button
-                            onClick={() => handleAction(c.id, confirmAction.type)}
-                            style={{
-                              ...styles.confirmBtn,
-                              background:
-                                confirmAction.type === 'valider'
-                                  ? 'var(--color-primary)'
-                                  : 'var(--color-accent-red)',
-                            }}
-                          >
-                            Oui, confirmer
-                          </button>
-                          <button onClick={() => setConfirmAction(null)} style={styles.cancelBtn}>
-                            Annuler
-                          </button>
+                        {isConfirming ? (
+                          <div style={styles.confirmBox}>
+                            <span style={styles.confirmText}>
+                              Confirmer : {confirmAction.type === 'valider' ? 'activer' : 'rejeter'} ce compte ?
+                            </span>
+                            <div style={styles.confirmActions}>
+                              <button
+                                onClick={() => handleAction(c.id, confirmAction.type)}
+                                style={{
+                                  ...styles.confirmBtn,
+                                  background:
+                                    confirmAction.type === 'valider'
+                                      ? 'var(--color-primary)'
+                                      : 'var(--color-accent-red)',
+                                }}
+                              >
+                                Oui, confirmer
+                              </button>
+                              <button onClick={() => setConfirmAction(null)} style={styles.cancelBtn}>
+                                Annuler
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={styles.actions}>
+                            <button
+                              onClick={() => setConfirmAction({ id: c.id, type: 'valider' })}
+                              style={styles.validerBtn}
+                            >
+                              <Check size={16} />
+                              Activer
+                            </button>
+                            <button
+                              onClick={() => setConfirmAction({ id: c.id, type: 'rejeter' })}
+                              style={styles.rejeterBtn}
+                            >
+                              <X size={16} />
+                              Rejeter
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
+          {onglet === 'actifs' && (
+            <>
+              <div style={styles.searchBox}>
+                <Search size={16} color="var(--color-text-soft)" />
+                <input
+                  type="text"
+                  placeholder="Rechercher par nom, matricule ou service..."
+                  value={recherche}
+                  onChange={(e) => setRecherche(e.target.value)}
+                  style={styles.searchInput}
+                />
+              </div>
+
+              {comptesActifsFiltres.length === 0 ? (
+                <p style={styles.empty}>Aucun utilisateur ne correspond à cette recherche.</p>
+              ) : (
+                <div style={styles.table}>
+                  <div style={styles.tableHeader}>
+                    <span style={{ flex: 2 }}>Utilisateur</span>
+                    <span style={{ flex: 1.5 }}>Service</span>
+                    <span style={{ flex: 1 }}>Rôle</span>
+                    <span style={{ flex: 1 }}>Actif depuis</span>
+                  </div>
+                  {comptesActifsFiltres.map((c) => (
+                    <div key={c.id} style={styles.tableRow}>
+                      <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={styles.avatarSmall}>
+                          {c.nom.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                        </div>
+                        <div>
+                          <p style={styles.rowName}>{c.nom}</p>
+                          <p style={styles.rowSub}>{c.matricule}</p>
                         </div>
                       </div>
-                    ) : (
-                      <div style={styles.actions}>
-                        <button
-                          onClick={() => setConfirmAction({ id: c.id, type: 'valider' })}
-                          style={styles.validerBtn}
-                        >
-                          <Check size={16} />
-                          Activer
-                        </button>
-                        <button
-                          onClick={() => setConfirmAction({ id: c.id, type: 'rejeter' })}
-                          style={styles.rejeterBtn}
-                        >
-                          <X size={16} />
-                          Rejeter
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </>
-      )}
-
-      {onglet === 'actifs' && (
-        <>
-          <div style={styles.searchBox}>
-            <Search size={16} color="var(--color-text-soft)" />
-            <input
-              type="text"
-              placeholder="Rechercher par nom, matricule ou service..."
-              value={recherche}
-              onChange={(e) => setRecherche(e.target.value)}
-              style={styles.searchInput}
-            />
-          </div>
-
-          {comptesActifsFiltres.length === 0 ? (
-            <p style={styles.empty}>Aucun utilisateur ne correspond à cette recherche.</p>
-          ) : (
-            <div style={styles.table}>
-              <div style={styles.tableHeader}>
-                <span style={{ flex: 2 }}>Utilisateur</span>
-                <span style={{ flex: 1.5 }}>Service</span>
-                <span style={{ flex: 1 }}>Rôle</span>
-                <span style={{ flex: 1 }}>Actif depuis</span>
-              </div>
-              {comptesActifsFiltres.map((c) => (
-                <div key={c.id} style={styles.tableRow}>
-                  <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={styles.avatarSmall}>
-                      {c.nom.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                      <span style={{ flex: 1.5, fontSize: '13px', color: 'var(--color-text-soft)' }}>
+                        {c.serviceNom}
+                      </span>
+                      <span style={{ flex: 1 }}>
+                        <span style={styles.roleBadge}>{ROLE_LABEL[c.role]}</span>
+                      </span>
+                      <span style={{ flex: 1, fontSize: '13px', color: 'var(--color-text-soft)' }}>
+                        {new Date(c.dateCreation).toLocaleDateString('fr-FR')}
+                      </span>
                     </div>
-                    <div>
-                      <p style={styles.rowName}>{c.nom}</p>
-                      <p style={styles.rowSub}>{c.matricule}</p>
-                    </div>
-                  </div>
-                  <span style={{ flex: 1.5, fontSize: '13px', color: 'var(--color-text-soft)' }}>
-                    {c.service}
-                  </span>
-                  <span style={{ flex: 1 }}>
-                    <span style={styles.roleBadge}>{ROLE_LABEL[c.role]}</span>
-                  </span>
-                  <span style={{ flex: 1, fontSize: '13px', color: 'var(--color-text-soft)' }}>
-                    {new Date(c.dateValidation).toLocaleDateString('fr-FR')}
-                  </span>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </>
       )}
