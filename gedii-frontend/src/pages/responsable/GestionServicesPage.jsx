@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, Plus } from 'lucide-react';
+import { Copy, Check, Plus, Trash2} from 'lucide-react';
 import { serviceService } from '../../services/serviceService';
 
 export default function GestionServicesPage() {
@@ -37,6 +37,15 @@ export default function GestionServicesPage() {
     setTimeout(() => setCopiedId(null), 1500);
   };
 
+  const handleDelete = (id, nom) => {
+  if (!window.confirm(`Supprimer le service "${nom}" ? Cette action est irréversible.`)) {
+    return;
+  }
+  serviceService.delete(id)
+    .then(() => loadServices())
+    .catch((err) => setError(err.response?.data?.erreur || 'Erreur lors de la suppression'));
+  };
+
   return (
     <div>
       <h1 style={styles.title}>Services & clés d'accès</h1>
@@ -72,21 +81,29 @@ export default function GestionServicesPage() {
                 Créé le {new Date(s.dateCreation).toLocaleDateString('fr-FR')}
               </p>
             </div>
-            <div style={styles.cleBox}>
-              <code style={styles.cleText}>{s.cleAcces}</code>
-              <button
-                onClick={() => handleCopy(s.id, s.cleAcces)}
-                style={styles.copyBtn}
-                title="Copier la clé"
-              >
-                {copiedId === s.id ? (
-                  <Check size={16} color="var(--color-primary)" />
-                ) : (
-                  <Copy size={16} />
-                )}
-              </button>
+      <div style={styles.cleBox}>
+          <code style={styles.cleText}>{s.cleAcces}</code>
+          <button
+            onClick={() => handleCopy(s.id, s.cleAcces)}
+            style={styles.copyBtn}
+            title="Copier la clé"
+          >
+            {copiedId === s.id ? (
+              <Check size={16} color="var(--color-primary)" />
+            ) : (
+              <Copy size={16} />
+            )}
+          </button>
+          <button
+            onClick={() => handleDelete(s.id, s.nom)}
+            style={styles.copyBtn}
+            title="Supprimer le service"
+          >
+            <Trash2 size={16} color="var(--color-accent-red)" />
+          </button>
+        </div>
             </div>
-          </div>
+          
         ))}
       </div>
     </div>

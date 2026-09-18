@@ -10,4 +10,9 @@ export const serviceService = {
     const response = await api.post('/services', { nom });
     return response.data;
   },
+
+  delete: async (id) => {
+  const response = await api.delete(`/services/${id}`);
+  return response.data;
+  },
 };
