@@ -1,32 +1,5 @@
-import { useState } from 'react';
-
-// Donnees fictives temporaires - seront remplacees par un appel a demandeService.getDemandesEnAttente()
-const DEMANDES_TEMP = [
-  {
-    id: 1,
-    titre: 'Imprimante hors service au 2e étage',
-    description: 'L\'imprimante ne répond plus depuis ce matin, voyant rouge allumé.',
-    urgence: 'URGENTE',
-    agentNom: 'Jean Mballa',
-    dateCreation: '2026-08-19',
-  },
-  {
-    id: 2,
-    titre: 'Demande de nouveau clavier',
-    description: 'Plusieurs touches ne fonctionnent plus correctement.',
-    urgence: 'FAIBLE',
-    agentNom: 'Marie Fotso',
-    dateCreation: '2026-08-19',
-  },
-  {
-    id: 3,
-    titre: 'Écran qui clignote par intermittence',
-    description: 'Depuis hier, l\'écran clignote toutes les quelques minutes.',
-    urgence: 'NORMALE',
-    agentNom: 'Paul Nkeng',
-    dateCreation: '2026-08-18',
-  },
-];
+import { useState, useEffect } from 'react';
+import { demandeService } from '../../services/demandeService';
 
 const URGENCE_CONFIG = {
   FAIBLE: { label: 'Faible', color: 'var(--color-primary)' },
@@ -35,14 +8,33 @@ const URGENCE_CONFIG = {
 };
 
 export default function DemandesEnAttentePage() {
-  const [demandes, setDemandes] = useState(DEMANDES_TEMP);
+  const [demandes, setDemandes] = useState([]);
   const [confirmAction, setConfirmAction] = useState(null); // { id, type: 'valider'|'rejeter' }
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDemandes();
+  }, []);
+
+  const loadDemandes = () => {
+    setLoading(true);
+    demandeService.getEnAttente()
+      .then(setDemandes)
+      .catch(() => setDemandes([]))
+      .finally(() => setLoading(false));
+  };
 
   const handleAction = (id, type) => {
-    // Branchement sur demandeService.validerDemande() / rejeterDemande() a l'etape backend
-    console.log(`Demande ${id} : ${type}`);
-    setDemandes(demandes.filter((d) => d.id !== id));
-    setConfirmAction(null);
+    const action = type === 'valider'
+      ? demandeService.valider(id)
+      : demandeService.rejeter(id);
+
+    action
+      .then(() => {
+        setConfirmAction(null);
+        loadDemandes();
+      })
+      .catch(() => setConfirmAction(null));
   };
 
   return (
@@ -52,7 +44,9 @@ export default function DemandesEnAttentePage() {
         {demandes.length} demande{demandes.length !== 1 ? 's' : ''} à traiter
       </p>
 
-      {demandes.length === 0 ? (
+      {loading ? (
+        <p style={styles.empty}>Chargement...</p>
+      ) : demandes.length === 0 ? (
         <p style={styles.empty}>Aucune demande en attente pour le moment.</p>
       ) : (
         <div style={styles.list}>

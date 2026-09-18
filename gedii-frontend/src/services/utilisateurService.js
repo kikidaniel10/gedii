@@ -11,6 +11,11 @@ export const utilisateurService = {
     return response.data;
   },
 
+  getTechniciens: async () => {
+    const response = await api.get('/utilisateurs/techniciens');
+    return response.data;
+  },
+
   valider: async (id) => {
     const response = await api.put(`/utilisateurs/${id}/valider`);
     return response.data;
