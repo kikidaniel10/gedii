@@ -9,7 +9,7 @@ const URGENCE_CONFIG = {
 
 export default function DemandesEnAttentePage() {
   const [demandes, setDemandes] = useState([]);
-  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null); // { id, type: 'valider'|'rejeter' }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function DemandesEnAttentePage() {
   const loadDemandes = () => {
     setLoading(true);
     demandeService.getEnAttente()
-      .then((data) => setDemandes(data))
+      .then(setDemandes)
       .catch(() => setDemandes([]))
       .finally(() => setLoading(false));
   };

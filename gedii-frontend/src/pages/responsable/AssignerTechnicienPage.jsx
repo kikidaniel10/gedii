@@ -13,7 +13,7 @@ const URGENCE_CONFIG = {
 export default function AssignerTechnicienPage() {
   const [demandes, setDemandes] = useState([]);
   const [techniciens, setTechniciens] = useState([]);
-  const [selection, setSelection] = useState({}); // { demandeId: technicienId }
+  const [selection, setSelection] = useState({});
   const [confirmId, setConfirmId] = useState(null);
   const [loading, setLoading] = useState(true);
 

@@ -13,9 +13,11 @@ import DemandesEnAttentePage from '../pages/responsable/DemandesEnAttentePage.js
 import GestionUtilisateursPage from '../pages/responsable/GestionUtilisateursPage.jsx';
 import GestionServicesPage from '../pages/responsable/GestionServicesPage.jsx';
 import StatistiquesPage from '../pages/responsable/StatistiquesPage.jsx';
+import AssignerTechnicienPage from '../pages/responsable/AssignerTechnicienPage.jsx';
 
 import InterventionsAssigneesPage from '../pages/technicien/InterventionsAssigneesPage.jsx';
-import AssignerTechnicienPage from '../pages/responsable/AssignerTechnicienPage.jsx';
+import MettreAJourStatutPage from '../pages/technicien/MettreAJourStatutPage.jsx';
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -72,19 +74,27 @@ export default function AppRouter() {
         }
       />
       <Route
-  path="/responsable/assigner"
-  element={
-    <ProtectedRoute allowedRoles={[ROLES.RESPONSABLE]}>
-      <AppLayout><AssignerTechnicienPage /></AppLayout>
-    </ProtectedRoute>
-  }
-/>
+        path="/responsable/assigner"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.RESPONSABLE]}>
+            <AppLayout><AssignerTechnicienPage /></AppLayout>
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/technicien/interventions"
         element={
           <ProtectedRoute allowedRoles={[ROLES.TECHNICIEN]}>
             <AppLayout><InterventionsAssigneesPage /></AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/technicien/intervention/:id"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.TECHNICIEN]}>
+            <AppLayout><MettreAJourStatutPage /></AppLayout>
           </ProtectedRoute>
         }
       />
