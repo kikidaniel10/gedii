@@ -41,4 +41,9 @@ public class UtilisateurController {
     public ResponseEntity<UtilisateurResponseDTO> promouvoirTechnicien(@PathVariable Long id, @RequestBody Map<String, String> body) {
         return ResponseEntity.ok(utilisateurService.promouvoirTechnicien(id, body.get("specialite")));
     }
+
+    @GetMapping("/techniciens")
+    public ResponseEntity<List<UtilisateurResponseDTO>> getTechniciens() {
+        return ResponseEntity.ok(utilisateurService.getTechniciens());
+    }
 }

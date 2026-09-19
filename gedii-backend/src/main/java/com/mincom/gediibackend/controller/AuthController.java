@@ -21,7 +21,18 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody RegisterRequestDTO dto) {
+    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, Object> body) {
+        RegisterRequestDTO dto = new RegisterRequestDTO();
+        dto.setNom((String) body.get("nom"));
+        dto.setMatricule((String) body.get("matricule"));
+        dto.setEmail((String) body.get("email"));
+        dto.setPassword((String) body.get("password"));
+        dto.setServiceNom((String) body.get("serviceNom"));
+        dto.setCleAcces((String) body.get("cleAcces"));
+
+        System.out.println("###### body recu = " + body);
+        System.out.println("###### serviceNom extrait = [" + dto.getServiceNom() + "]");
+
         Utilisateur utilisateur = authService.register(dto);
         return ResponseEntity.ok(Map.of(
                 "message", "Compte créé avec succès, en attente de validation par le responsable",

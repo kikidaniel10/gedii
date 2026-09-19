@@ -39,7 +39,7 @@ public class AuthService {
             throw new IllegalArgumentException("Ce matricule est déjà utilisé");
         }
 
-        Service service = serviceRepository.findByNom(dto.getServiceNom())
+        Service service = serviceRepository.findByNomIgnoreCase(dto.getServiceNom())
                 .orElseThrow(() -> new IllegalArgumentException("Service introuvable"));
 
         if (!service.getCleAcces().equals(dto.getCleAcces())) {
@@ -52,7 +52,11 @@ public class AuthService {
         utilisateur.setEmail(dto.getEmail());
         utilisateur.setPassword(passwordEncoder.encode(dto.getPassword()));
         utilisateur.setService(service);
-        utilisateur.setRole(Role.AGENT);
+        utilisateur.setRole(
+                "Cellule Informatique".equalsIgnoreCase(service.getNom())
+                        ? Role.TECHNICIEN
+                        : Role.AGENT
+        );
         utilisateur.setStatutCompte(StatutCompte.EN_ATTENTE);
 
         return utilisateurRepository.save(utilisateur);

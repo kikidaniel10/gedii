@@ -40,6 +40,7 @@ public class UtilisateurService {
                 .toList();
     }
 
+    @Transactional
     public UtilisateurResponseDTO valider(Long id) {
         Utilisateur utilisateur = utilisateurRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
@@ -50,6 +51,15 @@ public class UtilisateurService {
 
         utilisateur.setStatutCompte(StatutCompte.ACTIF);
         utilisateurRepository.save(utilisateur);
+
+        // Si c'est un TECHNICIEN, on crée automatiquement la ligne technicien_info
+        if (utilisateur.getRole() == Role.TECHNICIEN) {
+            entityManager.createNativeQuery(
+                            "INSERT INTO technicien_info (id, specialite, disponibilite) VALUES (:id, :specialite, true)"
+                    ).setParameter("id", utilisateur.getId())
+                    .setParameter("specialite", "Généraliste")
+                    .executeUpdate();
+        }
 
         notificationService.envoyer(
                 utilisateur.getEmail(),
@@ -93,5 +103,12 @@ public class UtilisateurService {
         utilisateurRepository.save(utilisateur);
 
         return new UtilisateurResponseDTO(utilisateur);
+    }
+
+    public List<UtilisateurResponseDTO> getTechniciens() {
+        return utilisateurRepository.findByRole(Role.TECHNICIEN)
+                .stream()
+                .map(UtilisateurResponseDTO::new)
+                .toList();
     }
 }
