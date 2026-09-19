@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import coatOfArms from '../../assets/coat-of-arms.png';
 import mincomBuilding from '../../assets/mincom-building.png';
 import { authService } from '../../services/authService';
@@ -10,12 +11,15 @@ export default function RegisterPage() {
     matricule: '',
     email: '',
     password: '',
+    confirmPassword: '',
     serviceId: '',
     cleAcces: '',
   });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [services, setServices] = useState([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     serviceService.getAll().then(setServices).catch(() => setServices([]));
@@ -26,12 +30,18 @@ export default function RegisterPage() {
     setErrors({ ...errors, [field]: null });
   };
 
+  const selectedService = services.find((s) => String(s.id) === String(form.serviceId));
+  const estCelluleInfo = selectedService?.nom === 'Cellule Informatique';
+
   const validate = () => {
     const newErrors = {};
     if (!form.nom.trim()) newErrors.nom = 'Le nom est requis';
     if (!form.matricule.trim()) newErrors.matricule = 'Le matricule est requis';
     if (!/^\S+@\S+\.\S+$/.test(form.email)) newErrors.email = 'Format email invalide';
     if (form.password.length < 6) newErrors.password = 'Minimum 6 caractères';
+    if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
+    }
     if (!form.serviceId) newErrors.serviceId = 'Sélectionnez un service';
     if (!form.cleAcces.trim()) newErrors.cleAcces = 'La clé d\'accès est requise';
     return newErrors;
@@ -45,14 +55,12 @@ export default function RegisterPage() {
       return;
     }
 
-    const selectedService = services.find((s) => String(s.id) === String(form.serviceId));
-
     authService.register({
       nom: form.nom,
       matricule: form.matricule,
       email: form.email,
       password: form.password,
-      service: selectedService ? selectedService.nom : '',
+      serviceNom: selectedService ? selectedService.nom : '',
       cleAcces: form.cleAcces,
     })
       .then(() => setSubmitted(true))
@@ -95,73 +103,83 @@ export default function RegisterPage() {
 
           <label style={styles.label}>
             Nom complet
-            <input
-              type="text"
-              value={form.nom}
-              onChange={handleChange('nom')}
-              style={styles.input}
-            />
+            <input type="text" value={form.nom} onChange={handleChange('nom')} style={styles.input} />
             {errors.nom && <span style={styles.error}>{errors.nom}</span>}
           </label>
 
           <label style={styles.label}>
             Matricule
-            <input
-              type="text"
-              value={form.matricule}
-              onChange={handleChange('matricule')}
-              style={styles.input}
-            />
+            <input type="text" value={form.matricule} onChange={handleChange('matricule')} style={styles.input} />
             {errors.matricule && <span style={styles.error}>{errors.matricule}</span>}
           </label>
 
           <label style={styles.label}>
             Email
-            <input
-              type="email"
-              placeholder="exemple@mincom.cm"
-              value={form.email}
-              onChange={handleChange('email')}
-              style={styles.input}
-            />
+            <input type="email" placeholder="exemple@mincom.cm" value={form.email} onChange={handleChange('email')} style={styles.input} />
             {errors.email && <span style={styles.error}>{errors.email}</span>}
           </label>
 
           <label style={styles.label}>
             Mot de passe
-            <input
-              type="password"
-              value={form.password}
-              onChange={handleChange('password')}
-              style={styles.input}
-            />
+            <div style={styles.passwordWrapper}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={handleChange('password')}
+                style={styles.passwordInput}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={styles.eyeBtn}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             {errors.password && <span style={styles.error}>{errors.password}</span>}
           </label>
 
           <label style={styles.label}>
+            Confirmer le mot de passe
+            <div style={styles.passwordWrapper}>
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={form.confirmPassword}
+                onChange={handleChange('confirmPassword')}
+                style={styles.passwordInput}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={styles.eyeBtn}
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {errors.confirmPassword && <span style={styles.error}>{errors.confirmPassword}</span>}
+          </label>
+
+          <label style={styles.label}>
             Service
-            <select
-              value={form.serviceId}
-              onChange={handleChange('serviceId')}
-              style={styles.input}
-            >
+            <select value={form.serviceId} onChange={handleChange('serviceId')} style={styles.input}>
               <option value="">Sélectionnez votre service</option>
               {services.map((s) => (
                 <option key={s.id} value={s.id}>{s.nom}</option>
               ))}
             </select>
             {errors.serviceId && <span style={styles.error}>{errors.serviceId}</span>}
+            {estCelluleInfo && (
+              <span style={styles.info}>
+                Vous serez enregistré comme membre de la cellule informatique (technicien).
+              </span>
+            )}
           </label>
 
           <label style={styles.label}>
             Clé d'accès du service
-            <input
-              type="text"
-              placeholder="Fournie par votre responsable"
-              value={form.cleAcces}
-              onChange={handleChange('cleAcces')}
-              style={styles.input}
-            />
+            <input type="text" placeholder="Fournie par votre responsable" value={form.cleAcces} onChange={handleChange('cleAcces')} style={styles.input} />
             {errors.cleAcces && <span style={styles.error}>{errors.cleAcces}</span>}
           </label>
 
@@ -233,10 +251,35 @@ const styles = {
     background: 'var(--color-surface)',
     color: 'var(--color-text)',
   },
-  error: {
-    fontSize: '12px',
-    color: 'var(--color-accent-red)',
+  passwordWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    borderRadius: '6px',
+    border: '1px solid var(--color-border)',
+    background: 'var(--color-surface)',
+    paddingRight: '6px',
   },
+  passwordInput: {
+    flex: 1,
+    padding: '10px 12px',
+    border: 'none',
+    outline: 'none',
+    fontSize: '15px',
+    fontFamily: 'var(--font-body)',
+    background: 'transparent',
+    color: 'var(--color-text)',
+  },
+  eyeBtn: {
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '6px',
+    display: 'flex',
+    alignItems: 'center',
+    color: 'var(--color-text-soft)',
+  },
+  error: { fontSize: '12px', color: 'var(--color-accent-red)' },
+  info: { fontSize: '12px', color: 'var(--color-primary)', fontWeight: 500 },
   button: {
     marginTop: '8px',
     padding: '12px',
