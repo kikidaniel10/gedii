@@ -1,12 +1,16 @@
 package com.mincom.gediibackend.controller;
 
 import com.mincom.gediibackend.dto.UtilisateurResponseDTO;
+import com.mincom.gediibackend.entity.Utilisateur;
 import com.mincom.gediibackend.service.UtilisateurService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
+
 @RestController
 @RequestMapping("/api/utilisateurs")
 public class UtilisateurController {
@@ -40,5 +44,27 @@ public class UtilisateurController {
     @PutMapping("/{id}/promouvoir-technicien")
     public ResponseEntity<UtilisateurResponseDTO> promouvoirTechnicien(@PathVariable Long id, @RequestBody Map<String, String> body) {
         return ResponseEntity.ok(utilisateurService.promouvoirTechnicien(id, body.get("specialite")));
+    }
+
+    @GetMapping("/techniciens")
+    public ResponseEntity<List<UtilisateurResponseDTO>> getTechniciens() {
+        return ResponseEntity.ok(utilisateurService.getTechniciens());
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UtilisateurResponseDTO> getMe(@AuthenticationPrincipal Utilisateur utilisateur) {
+        return ResponseEntity.ok(utilisateurService.getMe(utilisateur.getId()));
+    }
+
+    @PostMapping("/me/photo")
+    public ResponseEntity<UtilisateurResponseDTO> uploadPhoto(
+            @AuthenticationPrincipal Utilisateur utilisateur,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(utilisateurService.updatePhoto(utilisateur.getId(), file));
+    }
+
+    @DeleteMapping("/me/photo")
+    public ResponseEntity<UtilisateurResponseDTO> deletePhoto(@AuthenticationPrincipal Utilisateur utilisateur) {
+        return ResponseEntity.ok(utilisateurService.deletePhoto(utilisateur.getId()));
     }
 }

@@ -8,4 +8,5 @@ import lombok.Getter;
 public class PerformanceTechnicienDTO {
     private String nom;
     private long interventionsResolues;
+    private double delaiMoyenHeures;
 }

@@ -49,6 +49,9 @@ public class Utilisateur {
     @JoinColumn(name = "service_id", nullable = false)
     private Service service;
 
+    @Column(name = "photo_url", length = 500)
+    private String photoUrl;
+
     @Column(name = "date_creation")
     private LocalDateTime dateCreation = LocalDateTime.now();
 }

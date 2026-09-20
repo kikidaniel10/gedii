@@ -12,6 +12,7 @@ import com.mincom.gediibackend.repository.UtilisateurRepository;
 import com.mincom.gediibackend.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 @Component
 public class AuthService {
@@ -20,18 +21,21 @@ public class AuthService {
     private final ServiceRepository serviceRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final SupabaseStorageService supabaseStorageService;
 
     public AuthService(UtilisateurRepository utilisateurRepository,
                        ServiceRepository serviceRepository,
                        PasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil) {
+                       JwtUtil jwtUtil,
+                       SupabaseStorageService supabaseStorageService) {
         this.utilisateurRepository = utilisateurRepository;
         this.serviceRepository = serviceRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.supabaseStorageService = supabaseStorageService;
     }
 
-    public Utilisateur register(RegisterRequestDTO dto) {
+    public Utilisateur register(RegisterRequestDTO dto, MultipartFile photo) {
         if (utilisateurRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("Cet email est déjà utilisé");
         }
@@ -39,7 +43,7 @@ public class AuthService {
             throw new IllegalArgumentException("Ce matricule est déjà utilisé");
         }
 
-        Service service = serviceRepository.findByNom(dto.getServiceNom())
+        Service service = serviceRepository.findByNomIgnoreCase(dto.getServiceNom())
                 .orElseThrow(() -> new IllegalArgumentException("Service introuvable"));
 
         if (!service.getCleAcces().equals(dto.getCleAcces())) {
@@ -52,10 +56,28 @@ public class AuthService {
         utilisateur.setEmail(dto.getEmail());
         utilisateur.setPassword(passwordEncoder.encode(dto.getPassword()));
         utilisateur.setService(service);
-        utilisateur.setRole(Role.AGENT);
+        utilisateur.setRole(
+                "Cellule Informatique".equalsIgnoreCase(service.getNom())
+                        ? Role.TECHNICIEN
+                        : Role.AGENT
+        );
         utilisateur.setStatutCompte(StatutCompte.EN_ATTENTE);
 
-        return utilisateurRepository.save(utilisateur);
+        utilisateur = utilisateurRepository.save(utilisateur);
+
+        // Upload de la photo si fournie
+        if (photo != null && !photo.isEmpty()) {
+            try {
+                String url = supabaseStorageService.upload(photo, utilisateur.getId());
+                utilisateur.setPhotoUrl(url);
+                utilisateur = utilisateurRepository.save(utilisateur);
+            } catch (Exception e) {
+                System.out.println("###### Erreur upload photo : " + e.getMessage());
+                // On ne bloque pas l'inscription si l'upload échoue
+            }
+        }
+
+        return utilisateur;
     }
 
     public LoginResponseDTO login(LoginRequestDTO dto) {
