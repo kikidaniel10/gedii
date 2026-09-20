@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download } from 'lucide-react';
 import { utilisateurService } from '../../services/utilisateurService';
 import { interventionService } from '../../services/interventionService';
 
@@ -15,6 +15,7 @@ export default function TechniciensInterventionsPage() {
   const [interventions, setInterventions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     utilisateurService.getTechniciens()
@@ -37,6 +38,25 @@ export default function TechniciensInterventionsPage() {
     setInterventions([]);
   };
 
+  const telechargerRapport = async () => {
+    setDownloading(true);
+    try {
+      const blob = await interventionService.downloadRapport(selectedTech.id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rapport-${selectedTech.nom.replace(/\s+/g, '-')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('Erreur lors du téléchargement du rapport');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (selectedTech) {
     return (
       <div>
@@ -44,10 +64,26 @@ export default function TechniciensInterventionsPage() {
           <ArrowLeft size={16} /> Retour aux techniciens
         </button>
 
-        <h1 style={styles.title}>{selectedTech.nom}</h1>
-        <p style={styles.pageSubtitle}>
-          {interventions.length} intervention{interventions.length !== 1 ? 's' : ''} au total
-        </p>
+        <div style={styles.header}>
+          <div>
+            <h1 style={styles.title}>{selectedTech.nom}</h1>
+            <p style={styles.pageSubtitle}>
+              {interventions.length} intervention{interventions.length !== 1 ? 's' : ''} au total
+            </p>
+          </div>
+          <button
+            onClick={telechargerRapport}
+            disabled={downloading || interventions.length === 0}
+            style={{
+              ...styles.downloadBtn,
+              opacity: downloading || interventions.length === 0 ? 0.5 : 1,
+              cursor: downloading || interventions.length === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <Download size={16} />
+            {downloading ? 'Génération...' : 'Télécharger le rapport PDF'}
+          </button>
+        </div>
 
         {loadingDetail ? (
           <p style={styles.empty}>Chargement...</p>
@@ -128,12 +164,22 @@ export default function TechniciensInterventionsPage() {
 }
 
 const styles = {
+  header: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+    gap: '16px', flexWrap: 'wrap', marginBottom: '20px',
+  },
   title: { fontSize: '24px', color: 'var(--color-text)', marginBottom: '6px' },
   pageSubtitle: { fontSize: '14px', color: 'var(--color-text-soft)', marginBottom: '24px' },
   backBtn: {
     display: 'inline-flex', alignItems: 'center', gap: '6px',
     background: 'transparent', border: 'none', color: 'var(--color-primary)',
     fontSize: '13px', fontWeight: 500, cursor: 'pointer', padding: 0, marginBottom: '18px',
+  },
+  downloadBtn: {
+    display: 'flex', alignItems: 'center', gap: '8px',
+    padding: '10px 18px', borderRadius: '6px', border: 'none',
+    background: 'var(--color-primary)', color: 'var(--color-surface)',
+    fontSize: '14px', fontWeight: 600,
   },
   list: { display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '680px' },
   card: {

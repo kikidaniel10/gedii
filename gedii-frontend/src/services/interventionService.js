@@ -25,4 +25,11 @@ export const interventionService = {
     const response = await api.put(`/interventions/${id}/cloturer`, { compteRendu });
     return response.data;
   },
+
+  downloadRapport: async (technicienId) => {
+  const response = await api.get(`/interventions/technicien/${technicienId}/rapport`, {
+    responseType: 'blob',
+  });
+  return response.data;
+  },
 };
