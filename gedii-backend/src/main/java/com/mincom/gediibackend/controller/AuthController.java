@@ -5,8 +5,10 @@ import com.mincom.gediibackend.dto.auth.LoginResponseDTO;
 import com.mincom.gediibackend.dto.auth.RegisterRequestDTO;
 import com.mincom.gediibackend.entity.Utilisateur;
 import com.mincom.gediibackend.service.AuthService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -20,20 +22,26 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, Object> body) {
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> register(
+            @RequestParam("nom") String nom,
+            @RequestParam("matricule") String matricule,
+            @RequestParam("email") String email,
+            @RequestParam("password") String password,
+            @RequestParam("serviceNom") String serviceNom,
+            @RequestParam("cleAcces") String cleAcces,
+            @RequestParam(value = "photo", required = false) MultipartFile photo) {
+
         RegisterRequestDTO dto = new RegisterRequestDTO();
-        dto.setNom((String) body.get("nom"));
-        dto.setMatricule((String) body.get("matricule"));
-        dto.setEmail((String) body.get("email"));
-        dto.setPassword((String) body.get("password"));
-        dto.setServiceNom((String) body.get("serviceNom"));
-        dto.setCleAcces((String) body.get("cleAcces"));
+        dto.setNom(nom);
+        dto.setMatricule(matricule);
+        dto.setEmail(email);
+        dto.setPassword(password);
+        dto.setServiceNom(serviceNom);
+        dto.setCleAcces(cleAcces);
 
-        System.out.println("###### body recu = " + body);
-        System.out.println("###### serviceNom extrait = [" + dto.getServiceNom() + "]");
+        Utilisateur utilisateur = authService.register(dto, photo);
 
-        Utilisateur utilisateur = authService.register(dto);
         return ResponseEntity.ok(Map.of(
                 "message", "Compte créé avec succès, en attente de validation par le responsable",
                 "matricule", utilisateur.getMatricule()

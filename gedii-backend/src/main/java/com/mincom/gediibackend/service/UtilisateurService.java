@@ -8,6 +8,7 @@ import com.mincom.gediibackend.repository.UtilisateurRepository;
 import org.springframework.stereotype.Component;
 import jakarta.persistence.EntityManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -17,13 +18,16 @@ public class UtilisateurService {
     private final UtilisateurRepository utilisateurRepository;
     private final EntityManager entityManager;
     private final NotificationService notificationService;
+    private final SupabaseStorageService supabaseStorageService;
 
     public UtilisateurService(UtilisateurRepository utilisateurRepository,
                               EntityManager entityManager,
-                              NotificationService notificationService) {
+                              NotificationService notificationService,
+                              SupabaseStorageService supabaseStorageService) {
         this.utilisateurRepository = utilisateurRepository;
         this.entityManager = entityManager;
         this.notificationService = notificationService;
+        this.supabaseStorageService = supabaseStorageService;
     }
 
     public List<UtilisateurResponseDTO> getEnAttente() {
@@ -52,7 +56,6 @@ public class UtilisateurService {
         utilisateur.setStatutCompte(StatutCompte.ACTIF);
         utilisateurRepository.save(utilisateur);
 
-        // Si c'est un TECHNICIEN, on crée automatiquement la ligne technicien_info
         if (utilisateur.getRole() == Role.TECHNICIEN) {
             entityManager.createNativeQuery(
                             "INSERT INTO technicien_info (id, specialite, disponibilite) VALUES (:id, :specialite, true)"
@@ -110,5 +113,48 @@ public class UtilisateurService {
                 .stream()
                 .map(UtilisateurResponseDTO::new)
                 .toList();
+    }
+
+    public UtilisateurResponseDTO getMe(Long userId) {
+        Utilisateur utilisateur = utilisateurRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+        return new UtilisateurResponseDTO(utilisateur);
+    }
+
+    @Transactional
+    public UtilisateurResponseDTO updatePhoto(Long userId, MultipartFile file) {
+        Utilisateur utilisateur = utilisateurRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        try {
+            if (utilisateur.getPhotoUrl() != null) {
+                supabaseStorageService.delete(utilisateur.getPhotoUrl());
+            }
+
+            String url = supabaseStorageService.upload(file, userId);
+            utilisateur.setPhotoUrl(url);
+            utilisateurRepository.save(utilisateur);
+
+            return new UtilisateurResponseDTO(utilisateur);
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur upload photo : " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public UtilisateurResponseDTO deletePhoto(Long userId) {
+        Utilisateur utilisateur = utilisateurRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        try {
+            if (utilisateur.getPhotoUrl() != null) {
+                supabaseStorageService.delete(utilisateur.getPhotoUrl());
+                utilisateur.setPhotoUrl(null);
+                utilisateurRepository.save(utilisateur);
+            }
+            return new UtilisateurResponseDTO(utilisateur);
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur suppression photo : " + e.getMessage());
+        }
     }
 }

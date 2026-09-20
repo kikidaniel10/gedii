@@ -17,6 +17,7 @@ public class UtilisateurResponseDTO {
     private final StatutCompte statutCompte;
     private final String serviceNom;
     private final LocalDateTime dateCreation;
+    private final String photoUrl;
 
     public UtilisateurResponseDTO(Utilisateur u) {
         this.id = u.getId();
@@ -27,5 +28,6 @@ public class UtilisateurResponseDTO {
         this.statutCompte = u.getStatutCompte();
         this.serviceNom = u.getService().getNom();
         this.dateCreation = u.getDateCreation();
+        this.photoUrl = u.getPhotoUrl();
     }
 }
