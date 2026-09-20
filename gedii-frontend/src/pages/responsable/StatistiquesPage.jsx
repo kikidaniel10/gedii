@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, Clock, CheckCircle2, Users } from 'lucide-react';
+import { FileText, Clock, CheckCircle2, Users, Download } from 'lucide-react';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -18,6 +18,7 @@ export default function StatistiquesPage() {
   const [stats, setStats] = useState(null);
   const [performance, setPerformance] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -35,6 +36,25 @@ export default function StatistiquesPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleDownloadRapport = async () => {
+    setDownloading(true);
+    try {
+      const blob = await statistiqueService.downloadRapport();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'rapport-statistiques.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('Erreur lors du téléchargement du rapport');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (loading) return <p style={styles.empty}>Chargement...</p>;
   if (!stats) return <p style={styles.empty}>Impossible de charger les statistiques.</p>;
 
@@ -50,8 +70,24 @@ export default function StatistiquesPage() {
 
   return (
     <div>
-      <h1 style={styles.title}>Statistiques</h1>
-      <p style={styles.pageSubtitle}>Vue d'ensemble de l'activité de la cellule informatique.</p>
+      <div style={styles.header}>
+        <div>
+          <h1 style={styles.title}>Statistiques</h1>
+          <p style={styles.pageSubtitle}>Vue d'ensemble de l'activité de la cellule informatique.</p>
+        </div>
+        <button
+          onClick={handleDownloadRapport}
+          disabled={downloading}
+          style={{
+            ...styles.downloadBtn,
+            opacity: downloading ? 0.6 : 1,
+            cursor: downloading ? 'wait' : 'pointer',
+          }}
+        >
+          <Download size={16} />
+          {downloading ? 'Génération...' : 'Télécharger le rapport PDF'}
+        </button>
+      </div>
 
       <div style={styles.kpiGrid}>
         <div style={styles.kpiCard}>
@@ -168,8 +204,18 @@ export default function StatistiquesPage() {
 }
 
 const styles = {
+  header: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+    gap: '16px', flexWrap: 'wrap', marginBottom: '28px',
+  },
+  downloadBtn: {
+    display: 'flex', alignItems: 'center', gap: '8px',
+    padding: '10px 18px', borderRadius: '6px', border: 'none',
+    background: 'var(--color-primary)', color: 'var(--color-surface)',
+    fontSize: '14px', fontWeight: 600,
+  },
   title: { fontSize: '24px', color: 'var(--color-text)', marginBottom: '6px' },
-  pageSubtitle: { fontSize: '14px', color: 'var(--color-text-soft)', marginBottom: '28px' },
+  pageSubtitle: { fontSize: '14px', color: 'var(--color-text-soft)', marginBottom: 0 },
   kpiGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' },
   kpiCard: { display: 'flex', alignItems: 'center', gap: '14px', background: 'var(--color-surface)', padding: '18px 20px', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-card)' },
   kpiIcon: { width: '44px', height: '44px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' },

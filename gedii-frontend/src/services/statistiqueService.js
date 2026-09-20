@@ -10,4 +10,11 @@ export const statistiqueService = {
     const response = await api.get('/statistiques/techniciens');
     return response.data;
   },
+
+  downloadRapport: async () => {
+    const response = await api.get('/statistiques/rapport', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };

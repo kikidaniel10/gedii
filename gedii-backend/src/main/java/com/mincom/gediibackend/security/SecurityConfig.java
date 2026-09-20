@@ -59,6 +59,7 @@ public class SecurityConfig {
                         // Interventions : assignation + consultation par technicien = RESPONSABLE
                         .requestMatchers("/api/interventions/assigner").hasRole("RESPONSABLE")
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/interventions/technicien/*").hasRole("RESPONSABLE")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/interventions/technicien/*/rapport").hasRole("RESPONSABLE")
 
                         .requestMatchers("/api/statistiques/**").hasRole("RESPONSABLE")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/services/**").hasRole("RESPONSABLE")
