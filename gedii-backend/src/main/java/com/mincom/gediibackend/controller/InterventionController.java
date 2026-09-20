@@ -31,6 +31,11 @@ public class InterventionController {
         return ResponseEntity.ok(interventionService.getMesInterventions(technicien));
     }
 
+    @GetMapping("/technicien/{id}")
+    public ResponseEntity<List<InterventionResponseDTO>> getInterventionsByTechnicien(@PathVariable Long id) {
+        return ResponseEntity.ok(interventionService.getInterventionsByTechnicien(id));
+    }
+
     @PutMapping("/{id}/demarrer")
     public ResponseEntity<InterventionResponseDTO> demarrer(@PathVariable Long id) {
         return ResponseEntity.ok(interventionService.demarrer(id));

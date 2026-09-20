@@ -71,6 +71,17 @@ public class InterventionService {
                 .stream().map(InterventionResponseDTO::new).toList();
     }
 
+    public List<InterventionResponseDTO> getInterventionsByTechnicien(Long technicienId) {
+        TechnicienInfo technicien = entityManager.find(TechnicienInfo.class, technicienId);
+        if (technicien == null) {
+            throw new IllegalArgumentException("Technicien introuvable");
+        }
+        return interventionRepository.findByTechnicien(technicien)
+                .stream()
+                .map(InterventionResponseDTO::new)
+                .toList();
+    }
+
     public InterventionResponseDTO demarrer(Long id) {
         Intervention intervention = interventionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Intervention introuvable"));

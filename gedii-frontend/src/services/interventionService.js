@@ -11,6 +11,11 @@ export const interventionService = {
     return response.data;
   },
 
+  getByTechnicien: async (technicienId) => {
+    const response = await api.get(`/interventions/technicien/${technicienId}`);
+    return response.data;
+  },
+
   demarrer: async (id) => {
     const response = await api.put(`/interventions/${id}/demarrer`);
     return response.data;

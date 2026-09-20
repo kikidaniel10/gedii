@@ -5,6 +5,7 @@ import com.mincom.gediibackend.entity.Utilisateur;
 import com.mincom.gediibackend.entity.enums.Role;
 import com.mincom.gediibackend.entity.enums.StatutCompte;
 import com.mincom.gediibackend.repository.UtilisateurRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import jakarta.persistence.EntityManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,15 +20,18 @@ public class UtilisateurService {
     private final EntityManager entityManager;
     private final NotificationService notificationService;
     private final SupabaseStorageService supabaseStorageService;
+    private final PasswordEncoder passwordEncoder;
 
     public UtilisateurService(UtilisateurRepository utilisateurRepository,
                               EntityManager entityManager,
                               NotificationService notificationService,
-                              SupabaseStorageService supabaseStorageService) {
+                              SupabaseStorageService supabaseStorageService,
+                              PasswordEncoder passwordEncoder) {
         this.utilisateurRepository = utilisateurRepository;
         this.entityManager = entityManager;
         this.notificationService = notificationService;
         this.supabaseStorageService = supabaseStorageService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UtilisateurResponseDTO> getEnAttente() {
@@ -156,5 +160,51 @@ public class UtilisateurService {
         } catch (Exception e) {
             throw new RuntimeException("Erreur suppression photo : " + e.getMessage());
         }
+    }
+
+    @Transactional
+    public void supprimer(Long id, String password, Long responsableId) {
+        Utilisateur responsable = utilisateurRepository.findById(responsableId)
+                .orElseThrow(() -> new IllegalArgumentException("Responsable introuvable"));
+
+        if (!passwordEncoder.matches(password, responsable.getPassword())) {
+            throw new IllegalArgumentException("Mot de passe incorrect");
+        }
+
+        Utilisateur utilisateur = utilisateurRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        if (utilisateur.getId().equals(responsableId)) {
+            throw new IllegalStateException("Vous ne pouvez pas supprimer votre propre compte");
+        }
+
+        // Supprime la photo dans Supabase
+        try {
+            if (utilisateur.getPhotoUrl() != null) {
+                supabaseStorageService.delete(utilisateur.getPhotoUrl());
+            }
+        } catch (Exception e) {
+            System.out.println("###### Erreur suppression photo : " + e.getMessage());
+        }
+
+        // Supprime les dépendances (ordre important)
+        entityManager.createNativeQuery("DELETE FROM interventions WHERE technicien_id = :id")
+                .setParameter("id", id)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("DELETE FROM demandes WHERE agent_id = :id")
+                .setParameter("id", id)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("DELETE FROM technicien_info WHERE id = :id")
+                .setParameter("id", id)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("DELETE FROM notifications WHERE destinataire = :email")
+                .setParameter("email", utilisateur.getEmail())
+                .executeUpdate();
+
+        // Enfin, supprime l'utilisateur
+        utilisateurRepository.delete(utilisateur);
     }
 }

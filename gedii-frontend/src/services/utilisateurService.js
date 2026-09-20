@@ -30,4 +30,9 @@ export const utilisateurService = {
     const response = await api.put(`/utilisateurs/${id}/promouvoir-technicien`, { specialite });
     return response.data;
   },
+
+  supprimer: async (id, password) => {
+    const response = await api.delete(`/utilisateurs/${id}`, { data: { password } });
+    return response.data;
+  },
 };

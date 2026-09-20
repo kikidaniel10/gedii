@@ -67,4 +67,13 @@ public class UtilisateurController {
     public ResponseEntity<UtilisateurResponseDTO> deletePhoto(@AuthenticationPrincipal Utilisateur utilisateur) {
         return ResponseEntity.ok(utilisateurService.deletePhoto(utilisateur.getId()));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> supprimer(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Utilisateur responsable) {
+        utilisateurService.supprimer(id, body.get("password"), responsable.getId());
+        return ResponseEntity.ok(Map.of("message", "Utilisateur supprimé avec succès"));
+    }
 }

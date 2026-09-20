@@ -55,7 +55,11 @@ public class SecurityConfig {
 
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/demandes/*/valider", "/api/demandes/*/rejeter").hasRole("RESPONSABLE")
                         .requestMatchers("/api/demandes/en-attente", "/api/demandes/validees").hasRole("RESPONSABLE")
+
+                        // Interventions : assignation + consultation par technicien = RESPONSABLE
                         .requestMatchers("/api/interventions/assigner").hasRole("RESPONSABLE")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/interventions/technicien/*").hasRole("RESPONSABLE")
+
                         .requestMatchers("/api/statistiques/**").hasRole("RESPONSABLE")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/services/**").hasRole("RESPONSABLE")
                         .anyRequest().authenticated()

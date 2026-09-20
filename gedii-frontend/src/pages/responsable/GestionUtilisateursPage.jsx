@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, X, Search } from 'lucide-react';
+import { Check, X, Search, Trash2 } from 'lucide-react';
 import { utilisateurService } from '../../services/utilisateurService';
 
 const ROLE_LABEL = {
@@ -15,6 +15,10 @@ export default function GestionUtilisateursPage() {
   const [confirmAction, setConfirmAction] = useState(null);
   const [recherche, setRecherche] = useState('');
   const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState(null); // { id, nom }
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -48,6 +52,36 @@ export default function GestionUtilisateursPage() {
         loadData();
       })
       .catch(() => setConfirmAction(null));
+  };
+
+  const ouvrirDelete = (c) => {
+    setDeleteModal({ id: c.id, nom: c.nom });
+    setDeletePassword('');
+    setDeleteError('');
+  };
+
+  const fermerDelete = () => {
+    setDeleteModal(null);
+    setDeletePassword('');
+    setDeleteError('');
+  };
+
+  const confirmerSuppression = () => {
+    if (!deletePassword.trim()) {
+      setDeleteError('Le mot de passe est requis');
+      return;
+    }
+
+    setDeleting(true);
+    utilisateurService.supprimer(deleteModal.id, deletePassword)
+      .then(() => {
+        fermerDelete();
+        loadData();
+      })
+      .catch((err) => {
+        setDeleteError(err.response?.data?.erreur || 'Mot de passe incorrect');
+      })
+      .finally(() => setDeleting(false));
   };
 
   const comptesActifsFiltres = comptesActifs.filter(
@@ -184,6 +218,7 @@ export default function GestionUtilisateursPage() {
                     <span style={{ flex: 1.5 }}>Service</span>
                     <span style={{ flex: 1 }}>Rôle</span>
                     <span style={{ flex: 1 }}>Actif depuis</span>
+                    <span style={{ flex: 0.5, textAlign: 'right' }}>Actions</span>
                   </div>
                   {comptesActifsFiltres.map((c) => (
                     <div key={c.id} style={styles.tableRow}>
@@ -209,6 +244,15 @@ export default function GestionUtilisateursPage() {
                       <span style={{ flex: 1, fontSize: '13px', color: 'var(--color-text-soft)' }}>
                         {new Date(c.dateCreation).toLocaleDateString('fr-FR')}
                       </span>
+                      <span style={{ flex: 0.5, textAlign: 'right' }}>
+                        <button
+                          onClick={() => ouvrirDelete(c)}
+                          style={styles.deleteIconBtn}
+                          title="Supprimer cet utilisateur"
+                        >
+                          <Trash2 size={16} color="var(--color-accent-red)" />
+                        </button>
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -216,6 +260,43 @@ export default function GestionUtilisateursPage() {
             </>
           )}
         </>
+      )}
+
+      {deleteModal && (
+        <div style={styles.modalOverlay} onClick={fermerDelete}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>Confirmer la suppression</h3>
+            <p style={styles.modalText}>
+              Vous êtes sur le point de supprimer <strong>{deleteModal.nom}</strong>.
+              Cette action est <strong>irréversible</strong>.
+            </p>
+            <p style={styles.modalText}>
+              Entrez votre mot de passe pour confirmer :
+            </p>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={(e) => { setDeletePassword(e.target.value); setDeleteError(''); }}
+              placeholder="Votre mot de passe"
+              style={styles.modalInput}
+              autoFocus
+            />
+            {deleteError && <p style={styles.modalError}>{deleteError}</p>}
+            <div style={styles.modalActions}>
+              <button onClick={fermerDelete} style={styles.modalCancelBtn} disabled={deleting}>
+                Annuler
+              </button>
+              <button
+                onClick={confirmerSuppression}
+                style={{ ...styles.modalDeleteBtn, opacity: deleting ? 0.6 : 1 }}
+                disabled={deleting}
+              >
+                <Trash2 size={16} />
+                {deleting ? 'Suppression...' : 'Supprimer définitivement'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -229,7 +310,7 @@ const styles = {
     display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 4px',
     marginRight: '20px', background: 'transparent', border: 'none',
     borderBottom: '2px solid transparent', fontSize: '14px',
-    color: 'var(--color-text-soft)', fontWeight: 500,
+    color: 'var(--color-text-soft)', fontWeight: 500, cursor: 'pointer',
   },
   tabActive: {
     color: 'var(--color-primary)', borderBottomColor: 'var(--color-primary)', fontWeight: 600,
@@ -290,7 +371,7 @@ const styles = {
     background: 'transparent', color: 'var(--color-text)',
   },
   table: {
-    maxWidth: '760px', background: 'var(--color-surface)',
+    maxWidth: '860px', background: 'var(--color-surface)',
     borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-card)', overflow: 'hidden',
   },
   tableHeader: {
@@ -313,5 +394,39 @@ const styles = {
   roleBadge: {
     fontSize: '11px', fontWeight: 600, padding: '3px 9px', borderRadius: '999px',
     background: 'var(--color-primary-soft)', color: 'var(--color-primary-dark)',
+  },
+  deleteIconBtn: {
+    background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px',
+    borderRadius: '6px', display: 'inline-flex', alignItems: 'center',
+  },
+  modalOverlay: {
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
+  },
+  modal: {
+    background: 'var(--color-surface)', borderRadius: 'var(--radius)',
+    padding: '24px 28px', maxWidth: '420px', width: '90%',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+  },
+  modalTitle: { fontSize: '18px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '12px' },
+  modalText: { fontSize: '13px', color: 'var(--color-text-soft)', lineHeight: 1.5, marginBottom: '10px' },
+  modalInput: {
+    width: '100%', padding: '10px 12px', borderRadius: '6px',
+    border: '1px solid var(--color-border)', fontSize: '14px',
+    background: 'var(--color-surface)', color: 'var(--color-text)',
+    marginBottom: '10px', boxSizing: 'border-box',
+  },
+  modalError: { fontSize: '12px', color: 'var(--color-accent-red)', marginBottom: '10px' },
+  modalActions: { display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' },
+  modalCancelBtn: {
+    padding: '8px 14px', borderRadius: '6px', border: '1px solid var(--color-border)',
+    background: 'transparent', color: 'var(--color-text-soft)', fontSize: '13px',
+    fontWeight: 600, cursor: 'pointer',
+  },
+  modalDeleteBtn: {
+    display: 'flex', alignItems: 'center', gap: '6px',
+    padding: '8px 14px', borderRadius: '6px', border: 'none',
+    background: 'var(--color-accent-red)', color: 'var(--color-surface)',
+    fontSize: '13px', fontWeight: 600, cursor: 'pointer',
   },
 };

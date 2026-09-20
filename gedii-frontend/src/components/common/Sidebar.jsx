@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { ROLES } from '../../utils/constants';
 import { useAuth } from '../../hooks/useAuth';
 import { FileText, History, ClipboardList, Users, KeyRound, BarChart3, Wrench, UserCheck } from 'lucide-react';
+
 const MENUS = {
   [ROLES.AGENT]: [
     { path: '/agent/soumettre', label: 'Soumettre une demande', icon: FileText },
@@ -10,6 +11,7 @@ const MENUS = {
   [ROLES.RESPONSABLE]: [
     { path: '/responsable/demandes', label: 'Demandes en attente', icon: ClipboardList },
     { path: '/responsable/assigner', label: 'Assigner un technicien', icon: UserCheck },
+    { path: '/responsable/techniciens', label: 'Interventions techniciens', icon: Wrench },
     { path: '/responsable/utilisateurs', label: 'Utilisateurs', icon: Users },
     { path: '/responsable/services', label: 'Services & clés', icon: KeyRound },
     { path: '/responsable/statistiques', label: 'Statistiques', icon: BarChart3 },
