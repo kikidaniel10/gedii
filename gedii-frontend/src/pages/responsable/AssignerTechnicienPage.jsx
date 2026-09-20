@@ -142,7 +142,11 @@ export default function AssignerTechnicienPage() {
           techniciens.map((t) => (
             <div key={t.id} style={styles.techCard}>
               <div style={styles.avatarSmall}>
-                {t.nom.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                {t.photoUrl ? (
+                  <img src={t.photoUrl} alt={t.nom} style={styles.avatarImg} />
+                ) : (
+                  t.nom.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+                )}
               </div>
               <div>
                 <p style={styles.techName}>{t.nom}</p>
@@ -196,11 +200,11 @@ const styles = {
   confirmBtn: {
     padding: '7px 14px', borderRadius: '6px', border: 'none',
     background: 'var(--color-primary)', color: 'var(--color-surface)',
-    fontSize: '13px', fontWeight: 600,
+    fontSize: '13px', fontWeight: 600, cursor: 'pointer',
   },
   cancelBtn: {
     padding: '7px 14px', borderRadius: '6px', border: '1px solid var(--color-border)',
-    background: 'transparent', color: 'var(--color-text-soft)', fontSize: '13px',
+    background: 'transparent', color: 'var(--color-text-soft)', fontSize: '13px', cursor: 'pointer',
   },
   empty: { color: 'var(--color-text-soft)', fontSize: '14px' },
   techGrid: {
@@ -216,8 +220,9 @@ const styles = {
     width: '36px', height: '36px', minWidth: '36px', borderRadius: '50%',
     background: 'var(--color-primary-soft)', color: 'var(--color-primary-dark)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: '13px', fontWeight: 600,
+    fontSize: '13px', fontWeight: 600, overflow: 'hidden',
   },
+  avatarImg: { width: '100%', height: '100%', objectFit: 'cover' },
   techName: { fontSize: '13px', fontWeight: 500, color: 'var(--color-text)', margin: 0 },
   techMeta: { fontSize: '11px', color: 'var(--color-text-soft)', margin: '2px 0 0 0' },
 };

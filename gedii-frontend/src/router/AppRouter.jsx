@@ -18,11 +18,22 @@ import AssignerTechnicienPage from '../pages/responsable/AssignerTechnicienPage.
 import InterventionsAssigneesPage from '../pages/technicien/InterventionsAssigneesPage.jsx';
 import MettreAJourStatutPage from '../pages/technicien/MettreAJourStatutPage.jsx';
 
+import MonProfilPage from '../components/common/MonProfilPage.jsx';
+
 export default function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+
+      <Route
+        path="/profil"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.AGENT, ROLES.TECHNICIEN, ROLES.RESPONSABLE]}>
+            <AppLayout><MonProfilPage /></AppLayout>
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/agent/soumettre"

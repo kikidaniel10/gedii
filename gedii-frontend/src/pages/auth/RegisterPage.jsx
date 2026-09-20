@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, User } from 'lucide-react';
 import coatOfArms from '../../assets/coat-of-arms.png';
 import mincomBuilding from '../../assets/mincom-building.png';
 import { authService } from '../../services/authService';
@@ -15,6 +15,8 @@ export default function RegisterPage() {
     serviceId: '',
     cleAcces: '',
   });
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [services, setServices] = useState([]);
@@ -28,6 +30,19 @@ export default function RegisterPage() {
   const handleChange = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
     setErrors({ ...errors, [field]: null });
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors({ ...errors, photo: 'La photo ne doit pas dépasser 5 MB' });
+        return;
+      }
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+      setErrors({ ...errors, photo: null });
+    }
   };
 
   const selectedService = services.find((s) => String(s.id) === String(form.serviceId));
@@ -62,7 +77,7 @@ export default function RegisterPage() {
       password: form.password,
       serviceNom: selectedService ? selectedService.nom : '',
       cleAcces: form.cleAcces,
-    })
+    }, photoFile)
       .then(() => setSubmitted(true))
       .catch((err) => {
         setErrors({ general: err.response?.data?.erreur || 'Erreur lors de l\'inscription' });
@@ -101,6 +116,26 @@ export default function RegisterPage() {
             </span>
           )}
 
+          <div style={styles.photoSection}>
+            <div style={styles.photoPreviewWrapper}>
+              {photoPreview ? (
+                <img src={photoPreview} alt="Aperçu" style={styles.photoPreview} />
+              ) : (
+                <User size={32} color="var(--color-text-soft)" />
+              )}
+            </div>
+            <label style={styles.photoLabel}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                style={{ display: 'none' }}
+              />
+              {photoPreview ? 'Changer la photo' : 'Ajouter une photo (optionnel)'}
+            </label>
+            {errors.photo && <span style={styles.error}>{errors.photo}</span>}
+          </div>
+
           <label style={styles.label}>
             Nom complet
             <input type="text" value={form.nom} onChange={handleChange('nom')} style={styles.input} />
@@ -128,12 +163,7 @@ export default function RegisterPage() {
                 onChange={handleChange('password')}
                 style={styles.passwordInput}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={styles.eyeBtn}
-                tabIndex={-1}
-              >
+              <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeBtn} tabIndex={-1}>
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
@@ -149,12 +179,7 @@ export default function RegisterPage() {
                 onChange={handleChange('confirmPassword')}
                 style={styles.passwordInput}
               />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={styles.eyeBtn}
-                tabIndex={-1}
-              >
+              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeBtn} tabIndex={-1}>
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
@@ -234,6 +259,34 @@ const styles = {
     marginBottom: '24px',
   },
   form: { display: 'flex', flexDirection: 'column', gap: '14px' },
+  photoSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '10px',
+    marginBottom: '6px',
+  },
+  photoPreviewWrapper: {
+    width: '80px',
+    height: '80px',
+    borderRadius: '50%',
+    background: 'var(--color-bg-strong)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  photoPreview: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  photoLabel: {
+    fontSize: '13px',
+    color: 'var(--color-primary)',
+    cursor: 'pointer',
+    fontWeight: 500,
+  },
   label: {
     display: 'flex',
     flexDirection: 'column',

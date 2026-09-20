@@ -98,7 +98,11 @@ export default function GestionUtilisateursPage() {
                       <div key={c.id} style={styles.card}>
                         <div style={styles.cardMain}>
                           <div style={styles.avatar}>
-                            {c.nom.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                            {c.photoUrl ? (
+                              <img src={c.photoUrl} alt={c.nom} style={styles.avatarImg} />
+                            ) : (
+                              c.nom.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+                            )}
                           </div>
                           <div>
                             <h3 style={styles.cardTitle}>{c.nom}</h3>
@@ -185,7 +189,11 @@ export default function GestionUtilisateursPage() {
                     <div key={c.id} style={styles.tableRow}>
                       <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={styles.avatarSmall}>
-                          {c.nom.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                          {c.photoUrl ? (
+                            <img src={c.photoUrl} alt={c.nom} style={styles.avatarImg} />
+                          ) : (
+                            c.nom.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+                          )}
                         </div>
                         <div>
                           <p style={styles.rowName}>{c.nom}</p>
@@ -218,56 +226,31 @@ const styles = {
   pageSubtitle: { fontSize: '14px', color: 'var(--color-text-soft)', marginBottom: '20px' },
   tabs: { display: 'flex', gap: '4px', marginBottom: '24px', borderBottom: '1px solid var(--color-border)' },
   tab: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '10px 4px',
-    marginRight: '20px',
-    background: 'transparent',
-    border: 'none',
-    borderBottom: '2px solid transparent',
-    fontSize: '14px',
-    color: 'var(--color-text-soft)',
-    fontWeight: 500,
+    display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 4px',
+    marginRight: '20px', background: 'transparent', border: 'none',
+    borderBottom: '2px solid transparent', fontSize: '14px',
+    color: 'var(--color-text-soft)', fontWeight: 500,
   },
   tabActive: {
-    color: 'var(--color-primary)',
-    borderBottomColor: 'var(--color-primary)',
-    fontWeight: 600,
+    color: 'var(--color-primary)', borderBottomColor: 'var(--color-primary)', fontWeight: 600,
   },
   tabBadge: {
-    background: 'var(--color-accent-red)',
-    color: 'var(--color-surface)',
-    fontSize: '11px',
-    fontWeight: 700,
-    padding: '1px 7px',
-    borderRadius: '999px',
+    background: 'var(--color-accent-red)', color: 'var(--color-surface)',
+    fontSize: '11px', fontWeight: 700, padding: '1px 7px', borderRadius: '999px',
   },
   list: { display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '680px' },
   card: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    background: 'var(--color-surface)',
-    padding: '18px 20px',
-    borderRadius: 'var(--radius)',
-    boxShadow: 'var(--shadow-card)',
-    flexWrap: 'wrap',
-    gap: '14px',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    background: 'var(--color-surface)', padding: '18px 20px',
+    borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-card)',
+    flexWrap: 'wrap', gap: '14px',
   },
   cardMain: { display: 'flex', alignItems: 'center', gap: '14px' },
   avatar: {
-    width: '42px',
-    height: '42px',
-    minWidth: '42px',
-    borderRadius: '50%',
-    background: 'var(--color-primary)',
-    color: 'var(--color-surface)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '14px',
-    fontWeight: 600,
+    width: '42px', height: '42px', minWidth: '42px', borderRadius: '50%',
+    background: 'var(--color-primary)', color: 'var(--color-surface)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: '14px', fontWeight: 600, overflow: 'hidden',
   },
   cardTitle: { fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 4px 0' },
   cardMeta: { fontSize: '12px', color: 'var(--color-text-soft)', margin: 0 },
@@ -275,12 +258,12 @@ const styles = {
   validerBtn: {
     display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px',
     borderRadius: '6px', border: 'none', background: 'var(--color-primary)',
-    color: 'var(--color-surface)', fontSize: '13px', fontWeight: 600,
+    color: 'var(--color-surface)', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
   },
   rejeterBtn: {
     display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px',
     borderRadius: '6px', border: '1px solid var(--color-accent-red)', background: 'transparent',
-    color: 'var(--color-accent-red)', fontSize: '13px', fontWeight: 600,
+    color: 'var(--color-accent-red)', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
   },
   confirmBox: {
     background: 'var(--color-bg-strong)', borderRadius: '8px', padding: '12px 14px',
@@ -290,11 +273,11 @@ const styles = {
   confirmActions: { display: 'flex', gap: '8px' },
   confirmBtn: {
     padding: '7px 14px', borderRadius: '6px', border: 'none',
-    color: 'var(--color-surface)', fontSize: '13px', fontWeight: 600,
+    color: 'var(--color-surface)', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
   },
   cancelBtn: {
     padding: '7px 14px', borderRadius: '6px', border: '1px solid var(--color-border)',
-    background: 'transparent', color: 'var(--color-text-soft)', fontSize: '13px',
+    background: 'transparent', color: 'var(--color-text-soft)', fontSize: '13px', cursor: 'pointer',
   },
   empty: { color: 'var(--color-text-soft)', fontSize: '14px' },
   searchBox: {
@@ -306,7 +289,10 @@ const styles = {
     border: 'none', outline: 'none', flex: 1, fontSize: '14px',
     background: 'transparent', color: 'var(--color-text)',
   },
-  table: { maxWidth: '760px', background: 'var(--color-surface)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-card)', overflow: 'hidden' },
+  table: {
+    maxWidth: '760px', background: 'var(--color-surface)',
+    borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-card)', overflow: 'hidden',
+  },
   tableHeader: {
     display: 'flex', padding: '12px 20px', background: 'var(--color-bg-strong)',
     fontSize: '12px', fontWeight: 600, color: 'var(--color-text-soft)', textTransform: 'uppercase',
@@ -319,8 +305,9 @@ const styles = {
     width: '32px', height: '32px', minWidth: '32px', borderRadius: '50%',
     background: 'var(--color-primary-soft)', color: 'var(--color-primary-dark)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: '12px', fontWeight: 600,
+    fontSize: '12px', fontWeight: 600, overflow: 'hidden',
   },
+  avatarImg: { width: '100%', height: '100%', objectFit: 'cover' },
   rowName: { fontSize: '14px', fontWeight: 500, color: 'var(--color-text)', margin: 0 },
   rowSub: { fontSize: '12px', color: 'var(--color-text-soft)', margin: 0 },
   roleBadge: {
