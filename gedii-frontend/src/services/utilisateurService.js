@@ -31,8 +31,8 @@ export const utilisateurService = {
     return response.data;
   },
 
-  getTechniciens: async () => {
-  const response = await api.get('/utilisateurs/actifs');
-  return response.data;
+  supprimer: async (id, password) => {
+    const response = await api.delete(`/utilisateurs/${id}`, { data: { password } });
+    return response.data;
   },
 };

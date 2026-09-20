@@ -14,6 +14,7 @@ import GestionUtilisateursPage from '../pages/responsable/GestionUtilisateursPag
 import GestionServicesPage from '../pages/responsable/GestionServicesPage.jsx';
 import StatistiquesPage from '../pages/responsable/StatistiquesPage.jsx';
 import AssignerTechnicienPage from '../pages/responsable/AssignerTechnicienPage.jsx';
+import TechniciensInterventionsPage from '../pages/responsable/TechniciensInterventionsPage.jsx';
 
 import InterventionsAssigneesPage from '../pages/technicien/InterventionsAssigneesPage.jsx';
 import MettreAJourStatutPage from '../pages/technicien/MettreAJourStatutPage.jsx';
@@ -89,6 +90,14 @@ export default function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={[ROLES.RESPONSABLE]}>
             <AppLayout><AssignerTechnicienPage /></AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/responsable/techniciens"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.RESPONSABLE]}>
+            <AppLayout><TechniciensInterventionsPage /></AppLayout>
           </ProtectedRoute>
         }
       />

@@ -19,8 +19,9 @@ public class NotificationService {
     }
 
     public void envoyer(String destinataire, String sujet, String message) {
-        System.out.println("###### ENVOI EMAIL → destinataire = [" + destinataire + "]");
-        System.out.println("###### SUJET = [" + sujet + "]");
+        System.out.println("###### ====== DEBUT ENVOI EMAIL ======");
+        System.out.println("###### Destinataire : [" + destinataire + "]");
+        System.out.println("###### Sujet        : [" + sujet + "]");
 
         Notification notification = new Notification();
         notification.setDestinataire(destinataire);
@@ -37,11 +38,19 @@ public class NotificationService {
             System.out.println("###### EMAIL ENVOYE AVEC SUCCES a " + destinataire);
         } catch (Exception e) {
             notification.setStatut(StatutNotification.ECHEC);
-            System.out.println("###### ECHEC ENVOI EMAIL : " + e.getClass().getName());
-            System.out.println("###### MESSAGE : " + e.getMessage());
+            System.out.println("###### ECHEC ENVOI EMAIL");
+            System.out.println("###### Classe exception : " + e.getClass().getName());
+            System.out.println("###### Message          : " + e.getMessage());
             e.printStackTrace();
         }
 
-        notificationRepository.save(notification);
+        try {
+            notificationRepository.save(notification);
+            System.out.println("###### Notification enregistree en base");
+        } catch (Exception e) {
+            System.out.println("###### Erreur sauvegarde notification : " + e.getMessage());
+        }
+
+        System.out.println("###### ====== FIN ENVOI EMAIL ======");
     }
 }
