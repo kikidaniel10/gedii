@@ -3,8 +3,9 @@ package com.mincom.gediibackend.service;
 import com.mincom.gediibackend.entity.Notification;
 import com.mincom.gediibackend.entity.enums.StatutNotification;
 import com.mincom.gediibackend.repository.NotificationRepository;
-import org.springframework.mail.SimpleMailMessage;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +19,15 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
-    public void envoyer(String destinataire, String sujet, String message) {
+    /**
+     * Envoie un email au format HTML.
+     *
+     * @param destinataire  l'adresse email du destinataire
+     * @param sujet         le sujet de l'email
+     * @param htmlContent   le contenu HTML du mail
+     * @param texteFallback version texte brut (pour les clients qui n'affichent pas le HTML)
+     */
+    public void envoyer(String destinataire, String sujet, String htmlContent, String texteFallback) {
         System.out.println("###### ====== DEBUT ENVOI EMAIL ======");
         System.out.println("###### Destinataire : [" + destinataire + "]");
         System.out.println("###### Sujet        : [" + sujet + "]");
@@ -26,14 +35,19 @@ public class NotificationService {
         Notification notification = new Notification();
         notification.setDestinataire(destinataire);
         notification.setSujet(sujet);
-        notification.setMessage(message);
+        notification.setMessage(texteFallback);
 
         try {
-            SimpleMailMessage mail = new SimpleMailMessage();
-            mail.setTo(destinataire);
-            mail.setSubject(sujet);
-            mail.setText(message);
-            mailSender.send(mail);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom("GEDII - Cellule Informatique <ngdani116@gmail.com>");
+            helper.setTo(destinataire);
+            helper.setSubject(sujet);
+            helper.setText(texteFallback, htmlContent);
+
+            mailSender.send(message);
+
             notification.setStatut(StatutNotification.ENVOYEE);
             System.out.println("###### EMAIL ENVOYE AVEC SUCCES a " + destinataire);
         } catch (Exception e) {
