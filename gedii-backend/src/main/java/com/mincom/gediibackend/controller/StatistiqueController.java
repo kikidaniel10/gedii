@@ -7,9 +7,7 @@ import com.mincom.gediibackend.service.StatistiqueService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,8 +25,15 @@ public class StatistiqueController {
     }
 
     @GetMapping
-    public ResponseEntity<StatistiqueResponseDTO> getStatistiques() {
-        return ResponseEntity.ok(statistiqueService.getStatistiques());
+    public ResponseEntity<StatistiqueResponseDTO> getStatistiques(
+            @RequestParam(value = "periode", required = false) String periode,
+            @RequestParam(value = "service", required = false) String service) {
+        return ResponseEntity.ok(statistiqueService.getStatistiques(periode, service));
+    }
+
+    @GetMapping("/services")
+    public ResponseEntity<List<String>> getListeServices() {
+        return ResponseEntity.ok(statistiqueService.getListeServices());
     }
 
     @GetMapping("/techniciens")
