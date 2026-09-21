@@ -23,15 +23,18 @@ public class InterventionService {
     private final DemandeRepository demandeRepository;
     private final EntityManager entityManager;
     private final NotificationService notificationService;
+    private final EmailTemplateService emailTemplateService;
 
     public InterventionService(InterventionRepository interventionRepository,
                                DemandeRepository demandeRepository,
                                EntityManager entityManager,
-                               NotificationService notificationService) {
+                               NotificationService notificationService,
+                               EmailTemplateService emailTemplateService) {
         this.interventionRepository = interventionRepository;
         this.demandeRepository = demandeRepository;
         this.entityManager = entityManager;
         this.notificationService = notificationService;
+        this.emailTemplateService = emailTemplateService;
     }
 
     public InterventionResponseDTO assigner(AssignationRequestDTO dto) {
@@ -57,10 +60,19 @@ public class InterventionService {
 
         Intervention saved = interventionRepository.save(intervention);
 
+        String loginUrl = "http://localhost:5173/login";
+        String html = emailTemplateService.assignationIntervention(
+                technicien.getNom(), demande.getTitre(), loginUrl);
+        String texte = "Bonjour " + technicien.getNom() + ",\n\n"
+                + "Une nouvelle intervention vous a été assignée pour la demande : '" + demande.getTitre() + "'.\n\n"
+                + "Connectez-vous : " + loginUrl + "\n\n"
+                + "Cordialement,\nGEDII - Cellule Informatique du MINCOM";
+
         notificationService.envoyer(
                 technicien.getEmail(),
                 "Nouvelle intervention assignée",
-                "Une nouvelle intervention vous a été assignée pour la demande : '" + demande.getTitre() + "'"
+                html,
+                texte
         );
 
         return new InterventionResponseDTO(saved);
@@ -103,10 +115,20 @@ public class InterventionService {
         demande.setStatut(StatutDemande.RESOLUE);
         demandeRepository.save(demande);
 
+        String loginUrl = "http://localhost:5173/login";
+        String html = emailTemplateService.resolutionDemande(
+                demande.getAgent().getNom(), demande.getTitre(), dto.getCompteRendu(), loginUrl);
+        String texte = "Bonjour " + demande.getAgent().getNom() + ",\n\n"
+                + "Votre demande '" + demande.getTitre() + "' a été résolue.\n\n"
+                + "Compte-rendu : " + dto.getCompteRendu() + "\n\n"
+                + "Consultez le détail : " + loginUrl + "\n\n"
+                + "Cordialement,\nGEDII - Cellule Informatique du MINCOM";
+
         notificationService.envoyer(
                 demande.getAgent().getEmail(),
                 "Votre demande a été résolue",
-                "Votre demande '" + demande.getTitre() + "' a été résolue. Compte-rendu : " + dto.getCompteRendu()
+                html,
+                texte
         );
 
         return new InterventionResponseDTO(intervention);

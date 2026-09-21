@@ -21,17 +21,20 @@ public class UtilisateurService {
     private final NotificationService notificationService;
     private final SupabaseStorageService supabaseStorageService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailTemplateService emailTemplateService;
 
     public UtilisateurService(UtilisateurRepository utilisateurRepository,
                               EntityManager entityManager,
                               NotificationService notificationService,
                               SupabaseStorageService supabaseStorageService,
-                              PasswordEncoder passwordEncoder) {
+                              PasswordEncoder passwordEncoder,
+                              EmailTemplateService emailTemplateService) {
         this.utilisateurRepository = utilisateurRepository;
         this.entityManager = entityManager;
         this.notificationService = notificationService;
         this.supabaseStorageService = supabaseStorageService;
         this.passwordEncoder = passwordEncoder;
+        this.emailTemplateService = emailTemplateService;
     }
 
     public List<UtilisateurResponseDTO> getEnAttente() {
@@ -68,10 +71,18 @@ public class UtilisateurService {
                     .executeUpdate();
         }
 
+        String loginUrl = "http://localhost:5173/login";
+        String html = emailTemplateService.activationCompte(utilisateur.getNom(), loginUrl);
+        String texte = "Bonjour " + utilisateur.getNom() + ",\n\n"
+                + "Votre compte GEDII a été validé par le responsable de la cellule informatique.\n\n"
+                + "Connectez-vous ici : " + loginUrl + "\n\n"
+                + "Cordialement,\nGEDII - Cellule Informatique du MINCOM";
+
         notificationService.envoyer(
                 utilisateur.getEmail(),
                 "Votre compte GEDII a été activé",
-                "Bonjour " + utilisateur.getNom() + ", votre compte a été validé par le responsable. Vous pouvez maintenant vous connecter."
+                html,
+                texte
         );
 
         return new UtilisateurResponseDTO(utilisateur);
@@ -178,7 +189,6 @@ public class UtilisateurService {
             throw new IllegalStateException("Vous ne pouvez pas supprimer votre propre compte");
         }
 
-        // Supprime la photo dans Supabase
         try {
             if (utilisateur.getPhotoUrl() != null) {
                 supabaseStorageService.delete(utilisateur.getPhotoUrl());
@@ -187,7 +197,6 @@ public class UtilisateurService {
             System.out.println("###### Erreur suppression photo : " + e.getMessage());
         }
 
-        // Supprime les dépendances (ordre important)
         entityManager.createNativeQuery("DELETE FROM interventions WHERE technicien_id = :id")
                 .setParameter("id", id)
                 .executeUpdate();
@@ -204,7 +213,6 @@ public class UtilisateurService {
                 .setParameter("email", utilisateur.getEmail())
                 .executeUpdate();
 
-        // Enfin, supprime l'utilisateur
         utilisateurRepository.delete(utilisateur);
     }
 }

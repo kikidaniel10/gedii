@@ -16,10 +16,14 @@ public class DemandeService {
 
     private final DemandeRepository demandeRepository;
     private final NotificationService notificationService;
+    private final EmailTemplateService emailTemplateService;
 
-    public DemandeService(DemandeRepository demandeRepository, NotificationService notificationService) {
+    public DemandeService(DemandeRepository demandeRepository,
+                          NotificationService notificationService,
+                          EmailTemplateService emailTemplateService) {
         this.demandeRepository = demandeRepository;
         this.notificationService = notificationService;
+        this.emailTemplateService = emailTemplateService;
     }
 
     public DemandeResponseDTO creer(DemandeRequestDTO dto, Utilisateur agent) {
@@ -60,10 +64,19 @@ public class DemandeService {
         demande.setDateValidation(LocalDateTime.now());
         demandeRepository.save(demande);
 
+        String loginUrl = "http://localhost:5173/login";
+        String html = emailTemplateService.validationDemande(
+                demande.getAgent().getNom(), demande.getTitre(), loginUrl);
+        String texte = "Bonjour " + demande.getAgent().getNom() + ",\n\n"
+                + "Votre demande '" + demande.getTitre() + "' a été validée et sera bientôt assignée à un technicien.\n\n"
+                + "Consultez son état : " + loginUrl + "\n\n"
+                + "Cordialement,\nGEDII - Cellule Informatique du MINCOM";
+
         notificationService.envoyer(
                 demande.getAgent().getEmail(),
                 "Votre demande a été validée",
-                "Votre demande '" + demande.getTitre() + "' a été validée et sera bientôt assignée à un technicien."
+                html,
+                texte
         );
 
         return new DemandeResponseDTO(demande);
