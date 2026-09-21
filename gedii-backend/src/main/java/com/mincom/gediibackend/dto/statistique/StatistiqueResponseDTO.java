@@ -18,4 +18,9 @@ public class StatistiqueResponseDTO {
     private double delaiMoyenHeures;
     private List<Map<String, Object>> demandesParService;
     private List<Map<String, Object>> evolutionMensuelle;
+
+    // Nouveaux champs (deltas vs période précédente)
+    private long totalDemandesPrecedente;
+    private long resoluesPrecedente;
+    private String periodeLabel;
 }
