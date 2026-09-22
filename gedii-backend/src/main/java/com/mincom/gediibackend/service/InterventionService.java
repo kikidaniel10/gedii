@@ -11,6 +11,7 @@ import com.mincom.gediibackend.entity.enums.StatutIntervention;
 import com.mincom.gediibackend.repository.DemandeRepository;
 import com.mincom.gediibackend.repository.InterventionRepository;
 import jakarta.persistence.EntityManager;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,9 @@ public class InterventionService {
     private final EntityManager entityManager;
     private final NotificationService notificationService;
     private final EmailTemplateService emailTemplateService;
+
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
 
     public InterventionService(InterventionRepository interventionRepository,
                                DemandeRepository demandeRepository,
@@ -60,7 +64,7 @@ public class InterventionService {
 
         Intervention saved = interventionRepository.save(intervention);
 
-        String loginUrl = "http://localhost:5173/login";
+        String loginUrl = frontendUrl + "/login";
         String html = emailTemplateService.assignationIntervention(
                 technicien.getNom(), demande.getTitre(), loginUrl);
         String texte = "Bonjour " + technicien.getNom() + ",\n\n"
@@ -115,7 +119,7 @@ public class InterventionService {
         demande.setStatut(StatutDemande.RESOLUE);
         demandeRepository.save(demande);
 
-        String loginUrl = "http://localhost:5173/login";
+        String loginUrl = frontendUrl + "/login";
         String html = emailTemplateService.resolutionDemande(
                 demande.getAgent().getNom(), demande.getTitre(), dto.getCompteRendu(), loginUrl);
         String texte = "Bonjour " + demande.getAgent().getNom() + ",\n\n"

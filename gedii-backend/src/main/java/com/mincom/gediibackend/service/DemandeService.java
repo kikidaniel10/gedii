@@ -6,6 +6,7 @@ import com.mincom.gediibackend.entity.Demande;
 import com.mincom.gediibackend.entity.Utilisateur;
 import com.mincom.gediibackend.entity.enums.StatutDemande;
 import com.mincom.gediibackend.repository.DemandeRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,9 @@ public class DemandeService {
     private final DemandeRepository demandeRepository;
     private final NotificationService notificationService;
     private final EmailTemplateService emailTemplateService;
+
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
 
     public DemandeService(DemandeRepository demandeRepository,
                           NotificationService notificationService,
@@ -64,7 +68,7 @@ public class DemandeService {
         demande.setDateValidation(LocalDateTime.now());
         demandeRepository.save(demande);
 
-        String loginUrl = "http://localhost:5173/login";
+        String loginUrl = frontendUrl + "/login";
         String html = emailTemplateService.validationDemande(
                 demande.getAgent().getNom(), demande.getTitre(), loginUrl);
         String texte = "Bonjour " + demande.getAgent().getNom() + ",\n\n"

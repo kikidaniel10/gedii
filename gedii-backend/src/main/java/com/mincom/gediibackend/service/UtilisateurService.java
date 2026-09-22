@@ -5,6 +5,7 @@ import com.mincom.gediibackend.entity.Utilisateur;
 import com.mincom.gediibackend.entity.enums.Role;
 import com.mincom.gediibackend.entity.enums.StatutCompte;
 import com.mincom.gediibackend.repository.UtilisateurRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import jakarta.persistence.EntityManager;
@@ -22,6 +23,9 @@ public class UtilisateurService {
     private final SupabaseStorageService supabaseStorageService;
     private final PasswordEncoder passwordEncoder;
     private final EmailTemplateService emailTemplateService;
+
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
 
     public UtilisateurService(UtilisateurRepository utilisateurRepository,
                               EntityManager entityManager,
@@ -71,7 +75,7 @@ public class UtilisateurService {
                     .executeUpdate();
         }
 
-        String loginUrl = "http://localhost:5173/login";
+        String loginUrl = frontendUrl + "/login";
         String html = emailTemplateService.activationCompte(utilisateur.getNom(), loginUrl);
         String texte = "Bonjour " + utilisateur.getNom() + ",\n\n"
                 + "Votre compte GEDII a été validé par le responsable de la cellule informatique.\n\n"
