@@ -15,7 +15,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -32,13 +31,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Origines autorisées : localhost (dev) + frontendUrl (prod/Vercel)
-        configuration.setAllowedOrigins(Arrays.asList(
+        // setAllowedOriginPatterns accepte les wildcards (*.vercel.app)
+        configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:5173",
+                "https://*.vercel.app",
                 frontendUrl
         ));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -56,16 +56,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/services").permitAll()
 
-                        // Profil utilisateur : accessible à tous les utilisateurs connectés
                         .requestMatchers("/api/utilisateurs/me", "/api/utilisateurs/me/photo").authenticated()
-
-                        // Reste des routes utilisateurs : uniquement RESPONSABLE
                         .requestMatchers("/api/utilisateurs/**").hasRole("RESPONSABLE")
 
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/demandes/*/valider", "/api/demandes/*/rejeter").hasRole("RESPONSABLE")
                         .requestMatchers("/api/demandes/en-attente", "/api/demandes/validees").hasRole("RESPONSABLE")
 
-                        // Interventions : assignation + consultation par technicien = RESPONSABLE
                         .requestMatchers("/api/interventions/assigner").hasRole("RESPONSABLE")
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/interventions/technicien/*").hasRole("RESPONSABLE")
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/interventions/technicien/*/rapport").hasRole("RESPONSABLE")
